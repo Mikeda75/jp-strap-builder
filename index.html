@@ -699,7 +699,7 @@
         </div>
 
         <div class="cg">
-          <div class="cg-h"><span class="num">04</span><h3>Stamps</h3><span class="req">Required</span></div>
+          <div class="cg-h"><span class="num">04</span><h3>Stamps</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
           <p class="cg-note">Top and bottom slots. Placeholder artwork — the live listing offers <b>116 designs</b> per slot.</p>
           <div class="stamp-cols">
             <div>
@@ -1280,6 +1280,10 @@ const PHOTOS={
   outline:{t:'Text Outline Colors',
            n:'Outlines use the same standard paints. The themed finishes are paint-only — they are not offered as an outline.',
            i:[PAINT_STD]},
+  stamps :{t:'Stamp Catalog',
+           n:'Every stamp photographed on black leather, painted the way it ships. Pick by name in the Top and Bottom Stamp menus.',
+           i:[['assets/chart-stamps-1.jpg',''],['assets/chart-stamps-2.jpg',''],
+              ['assets/chart-stamps-3.jpg',''],['assets/chart-stamps-4.jpg','']]},
 };
 document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>{
   const p=PHOTOS[b.dataset.photo];
