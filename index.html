@@ -95,6 +95,12 @@
   #art .lay-splatter{display:none}
   #art.splat .lay-splatter{display:inline}
 
+  /* the selected-option name in each group header carries its own colour chip,
+     so the current pick reads at a glance without hunting the highlighted pill */
+  .cg-h .pick .pdot{display:inline-block;width:12px;height:12px;border-radius:50%;
+    margin-right:6px;vertical-align:-1px;border:1px solid rgba(255,255,255,.45);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+
   /* ================= SVG artwork styling ================= */
   /* stitching: one geometry set, drawn twice (dark bed + colored thread).
      class-based so the rows can live in several groups at different depths */
@@ -777,8 +783,12 @@ const $ = id => document.getElementById(id);
 const FX = {
   glitter:c=>c+' radial-gradient(circle at 30% 30%,rgba(255,255,255,.85) 0 1px,transparent 1px) repeat 0 0/5px 5px',
   pearl:c=>'linear-gradient(135deg,rgba(255,255,255,.45) 0%,'+c+' 45%,rgba(0,0,0,.35) 100%)',
-  splatter:(c,o)=>c+' radial-gradient(circle at 62% 30%,'+o.sp[0]+' 0 2px,transparent 2px) repeat 0 0/8px 8px,'
-                   +'radial-gradient(circle at 22% 70%,'+o.sp[1]+' 0 1.6px,transparent 1.6px) repeat 0 0/11px 11px',
+  // NB: in a multi-layer background the colour is only legal on the LAST layer -
+  // putting it first makes the whole declaration invalid and it renders blank
+  splatter:(c,o)=>'radial-gradient(circle at 62% 30%,'+o.sp[0]+' 0 2.1px,transparent 2.1px) 0 0/8px 8px repeat,'
+                 +'radial-gradient(circle at 22% 68%,'+o.sp[1]+' 0 1.5px,transparent 1.5px) 3px 2px/11px 11px repeat,'
+                 +'radial-gradient(circle at 80% 80%,'+o.sp[2]+' 0 1.2px,transparent 1.2px) 1px 5px/14px 14px repeat,'
+                 +c,
   groove:()=>'repeating-linear-gradient(90deg,#4a4038 0 3px,#2f2823 3px 6px)',
   none:()=>'repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)',
   'flag-us':()=>'linear-gradient(180deg,#b3201f 0 33%,#f2efe8 33% 66%,#23439c 66%)',
@@ -896,6 +906,12 @@ document.querySelectorAll('[data-view]').forEach(c=>c.addEventListener('click',(
 $('rearIn').addEventListener('input',e=>{ state.rear=e.target.value; render(); });
 $('notesIn').addEventListener('input',e=>{ state.notes=e.target.value; });
 
+// group header: colour chip + the option's full name
+function pick(id, it, extra){
+  $(id).innerHTML = '<span class="pdot" style="background:'+dotCss(it)+'"></span>'
+                  + it.n + (extra||'');
+}
+
 // ---------------- render ----------------
 const VIEWS = {all:'0 0 1000 1000', diag:'190 -122 620 620', belt:'0 120 1000 136', holster:'324 294 314 420', sway:'132 747 700 152'};
 function mark(mount, idx){
@@ -963,13 +979,13 @@ function render(){
   $('priceBrk').innerHTML=['Base strap $114.99'].concat(add.map(a=>a[0]+' +$'+a[1])).join('<br>');
 
   // labels + highlights
-  $('pick-leather').textContent=L.n;                   mark('g-leather',state.leather);
+  pick('pick-leather',L);                              mark('g-leather',state.leather);
   $('pick-length').textContent=LENGTH[state.length].n; mark('g-length',state.length);
-  $('pick-stitch').textContent=S.n+' · '+DOUBLE[state.ds].n; mark('g-stitch',state.stitch);
+  pick('pick-stitch',S,' · '+DOUBLE[state.ds].n);      mark('g-stitch',state.stitch);
   mark('g-ds',state.ds);
-  $('pick-paint').textContent=P.n;                     mark('g-paint',state.paint);
-  $('pick-outline').textContent=Ou.n;                  mark('g-outline',state.outline);
-  $('pick-hw').textContent=H.n;                        mark('g-hw',state.hw);
+  pick('pick-paint',P);                                mark('g-paint',state.paint);
+  pick('pick-outline',Ou);                             mark('g-outline',state.outline);
+  pick('pick-hw',H);                                   mark('g-hw',state.hw);
   $('pick-pen').textContent=YESNO10[state.pen].n;      mark('g-pen',state.pen);
   $('pick-cord').textContent=YESNO10[state.cord].n;    mark('g-cord',state.cord);
   $('g-lstamp').refresh(); $('g-rstamp').refresh();
