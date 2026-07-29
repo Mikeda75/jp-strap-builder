@@ -165,6 +165,13 @@
     font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
     text-transform:uppercase;border-radius:200px;padding:2px 9px;cursor:pointer;transition:all .2s}
   .guide-btn:hover{background:rgba(247,184,41,.16)}
+  /* one-time shimmer on the Leather group's swatch button - first thing
+     everyone touches, so that's where the hint pays off */
+  @keyframes swatchGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(247,184,41,0);background:transparent}
+    50%{box-shadow:0 0 14px 2px rgba(247,184,41,.55);background:rgba(247,184,41,.22)}
+  }
+  .guide-btn.shimmer{animation:swatchGlow 1.6s ease-in-out 3;animation-delay:1.2s}
   .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);
     display:flex;align-items:center;justify-content:center;padding:24px}
   .modal[hidden]{display:none}
@@ -1338,6 +1345,10 @@ const GALLERY = [
     b.addEventListener('click',()=>select(b));
     strip.appendChild(b);
   });
+  const firstSwatchBtn=document.querySelector('[data-photo="leather"]');
+  firstSwatchBtn.classList.add('shimmer');
+  ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,
+    ()=>firstSwatchBtn.classList.remove('shimmer'),{once:true,capture:true}));
   miniBtn.addEventListener('click',()=>{
     if(stage.classList.contains('live')) select(lastTile||strip.children[0]);
     else setLive(true);
