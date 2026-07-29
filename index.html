@@ -106,6 +106,31 @@
   .sw-item .dot,.cg-h .pick .pdot{overflow:hidden;position:relative}
   .sw-item .dot>svg,.cg-h .pick .pdot>svg{position:absolute;left:0;top:0;width:100%;height:100%}
 
+  /* size guide */
+  .guide-btn{background:transparent;border:1px solid rgba(247,184,41,.55);color:var(--gold);
+    font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;border-radius:200px;padding:2px 9px;cursor:pointer;transition:all .2s}
+  .guide-btn:hover{background:rgba(247,184,41,.16)}
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal[hidden]{display:none}
+  .modal-card{position:relative;background:#242424;border:1px solid var(--line);border-radius:14px;
+    max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:30px 32px 34px;
+    box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .modal-card h2{font-family:Bevan,serif;color:var(--gold);font-size:1.3rem;margin:0 0 18px}
+  .modal-card h3{font-family:Jost,sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.14em;font-size:.8rem;margin:26px 0 10px;color:#fff}
+  .modal-card p{font-size:.86rem;line-height:1.6;color:rgba(255,255,255,.78);margin:0 0 12px}
+  .modal-card p.lead{color:var(--gold);font-weight:600;margin-bottom:4px;font-size:.82rem}
+  .modal-x{position:absolute;top:12px;right:14px;background:transparent;border:0;color:#fff;
+    font-size:1.6rem;line-height:1;cursor:pointer;opacity:.65;padding:4px 8px}
+  .modal-x:hover{opacity:1}
+  .size-tbl{width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:6px}
+  .size-tbl th{text-align:left;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);padding:0 0 7px}
+  .size-tbl td{padding:8px 0;border-top:1px solid var(--line);color:rgba(255,255,255,.85)}
+  .size-tbl td:last-child{text-align:right}
+
   /* ================= SVG artwork styling ================= */
   /* stitching: one geometry set, drawn twice (dark bed + colored thread).
      class-based so the rows can live in several groups at different depths */
@@ -589,7 +614,7 @@
         </div>
 
         <div class="cg">
-          <div class="cg-h"><span class="num">02</span><h3>Radio Strap Length</h3><span class="req">Required</span><span class="pick" id="pick-length"></span></div>
+          <div class="cg-h"><span class="num">02</span><h3>Radio Strap Length</h3><span class="req">Required</span><button type="button" class="guide-btn" id="sizeGuideBtn">Size&nbsp;guide</button><span class="pick" id="pick-length"></span></div>
           <p class="cg-note">Measured end to end, including the scissor snaps. Not sure? Pick <b>Other</b> and put your measurement in the notes.</p>
           <div class="opt-row" id="g-length"></div>
         </div>
@@ -665,6 +690,56 @@
 
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Size guide. The live listing has no chart image or linked page — this is the
+     measuring guidance from its product description, verbatim, plus the length
+     ranges carried in the Radio Strap Length labels. A dialog rather than a link
+     so the client preview never navigates away from the builder. -->
+<div class="modal" id="sizeModal" role="dialog" aria-modal="true" aria-labelledby="sizeModalTitle" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-x" id="sizeModalX" aria-label="Close">&times;</button>
+    <h2 id="sizeModalTitle">Radio Strap Sizing</h2>
+
+    <table class="size-tbl">
+      <thead><tr><th>Size</th><th>Overall length</th></tr></thead>
+      <tbody>
+        <tr><td>Medium</td><td>54&quot;&ndash;62&quot;</td></tr>
+        <tr><td>Large</td><td>58&quot;&ndash;66&quot;</td></tr>
+        <tr><td>X-Large</td><td>62&quot;&ndash;70&quot;</td></tr>
+        <tr><td>Other</td><td>Add requested size to notes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>How to measure</h3>
+    <p class="lead">Measuring your current strap</p>
+    <p>Lay your strap out flat on a bench or the floor. Measure it from one end to the other
+       <b>including the scissor snaps</b> on the ends.</p>
+
+    <p class="lead">If you do not have a strap</p>
+    <p>You will need a piece of rope or webbing (to simulate a radio strap) and a tape measure.
+       Take your rope or webbing and drape it over your shoulder. Bring one end of the rope/webbing
+       and the long side of the rope/webbing together at your hip (opposite side of your shoulder).
+       Pinch it where you would like the top of the radio holster to sit. While holding the
+       rope/webbing, remove it and lay it flat out on a bench or floor. Using a tape measure,
+       measure it from the end to the pinched spot. That will be your measurement.</p>
+
+    <p class="lead">If it is a gift and you cannot take a measurement</p>
+    <p>Include the recipient&rsquo;s approximate height and build (or weight) and we will make the
+       strap accordingly. If you receive the strap and it is a few inches too small or too big,
+       email us and we will fix it at no additional charge.</p>
+
+    <h3>Holster sizes</h3>
+    <p>Maximum dimensions for each holster size:</p>
+    <table class="size-tbl">
+      <tbody>
+        <tr><td>Standard</td><td>H 7.5&quot; &times; W 2.75&quot; &times; D 1.8&quot;</td></tr>
+        <tr><td>Extended Battery</td><td>H 9&quot; &times; W 2.75&quot; &times; D 1.8&quot;</td></tr>
+        <tr><td>Wide</td><td>H 7.5&quot; &times; W 3.125&quot; &times; D 2.125&quot;</td></tr>
+        <tr><td>Wide Extended Battery</td><td>H 9&quot; &times; W 3.125&quot; &times; D 2.125&quot;</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -1027,6 +1102,15 @@ if(q.has('l')){
   }
   if(q.has('n')){ state.rear=q.get('n'); $('rearIn').value=state.rear; }
 }
+// ---------------- size guide ----------------
+const sizeModal=$('sizeModal');
+const openGuide =()=>{ sizeModal.hidden=false; $('sizeModalX').focus(); };
+const closeGuide=()=>{ sizeModal.hidden=true;  $('sizeGuideBtn').focus(); };
+$('sizeGuideBtn').addEventListener('click',openGuide);
+$('sizeModalX').addEventListener('click',closeGuide);
+sizeModal.addEventListener('click',e=>{ if(e.target===sizeModal) closeGuide(); });
+addEventListener('keydown',e=>{ if(e.key==='Escape' && !sizeModal.hidden) closeGuide(); });
+
 render();
 </script>
 
