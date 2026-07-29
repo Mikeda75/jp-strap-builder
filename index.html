@@ -101,6 +101,11 @@
     margin-right:6px;vertical-align:-1px;border:1px solid rgba(255,255,255,.45);
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
 
+  /* a splatter dot shows a window of the real spatter tile - CSS gradients tile on
+     a fixed pitch and read as a grid at this size */
+  .sw-item .dot,.cg-h .pick .pdot{overflow:hidden;position:relative}
+  .sw-item .dot>svg,.cg-h .pick .pdot>svg{position:absolute;left:0;top:0;width:100%;height:100%}
+
   /* ================= SVG artwork styling ================= */
   /* stitching: one geometry set, drawn twice (dark bed + colored thread).
      class-based so the rows can live in several groups at different depths */
@@ -783,12 +788,7 @@ const $ = id => document.getElementById(id);
 const FX = {
   glitter:c=>c+' radial-gradient(circle at 30% 30%,rgba(255,255,255,.85) 0 1px,transparent 1px) repeat 0 0/5px 5px',
   pearl:c=>'linear-gradient(135deg,rgba(255,255,255,.45) 0%,'+c+' 45%,rgba(0,0,0,.35) 100%)',
-  // NB: in a multi-layer background the colour is only legal on the LAST layer -
-  // putting it first makes the whole declaration invalid and it renders blank
-  splatter:(c,o)=>'radial-gradient(circle at 62% 30%,'+o.sp[0]+' 0 2.1px,transparent 2.1px) 0 0/8px 8px repeat,'
-                 +'radial-gradient(circle at 22% 68%,'+o.sp[1]+' 0 1.5px,transparent 1.5px) 3px 2px/11px 11px repeat,'
-                 +'radial-gradient(circle at 80% 80%,'+o.sp[2]+' 0 1.2px,transparent 1.2px) 1px 5px/14px 14px repeat,'
-                 +c,
+  splatter:c=>c,        // the flecks are real artwork, see dotInner()
   groove:()=>'repeating-linear-gradient(90deg,#4a4038 0 3px,#2f2823 3px 6px)',
   none:()=>'repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)',
   'flag-us':()=>'linear-gradient(180deg,#b3201f 0 33%,#f2efe8 33% 66%,#23439c 66%)',
@@ -812,12 +812,23 @@ function dotCss(it){
   if(it.c==='groove')    return FX.groove();
   return it.c;
 }
+// Splatter dots show a window of #splatTile - the same artwork the preview uses,
+// so the fleck pattern is as irregular there as it is on the strap. The window is
+// offset per finish from its own name, so the five do not look like one swatch.
+function dotInner(it){
+  if(!it.sp) return '';
+  let h=0; for(let i=0;i<it.n.length;i++) h=(h*31+it.n.charCodeAt(i))>>>0;
+  const x=h%436, y=(h>>>9)%436;
+  return '<svg viewBox="'+x+' '+y+' 64 64" preserveAspectRatio="xMidYMid slice"'
+       + ' style="--sp1:'+it.sp[0]+';--sp2:'+it.sp[1]+';--sp3:'+it.sp[2]+'">'
+       + '<use href="#splatTile"/></svg>';
+}
 function swatch(list, mount, key){
   const el=$(mount);
   list.forEach((it,i)=>{
     const b=document.createElement('button');
     b.type='button'; b.className='sw-item'; b.dataset.i=i; b.title=it.n;
-    b.innerHTML='<span class="dot" style="background:'+dotCss(it)+'"></span>'
+    b.innerHTML='<span class="dot" style="background:'+dotCss(it)+'">'+dotInner(it)+'</span>'
               + '<span class="lab">'+it.s+'</span>' + (it.a?'<b>+$'+it.a+'</b>':'');
     b.addEventListener('click',()=>{ state[key]=i; render(); });
     el.appendChild(b);
@@ -908,7 +919,7 @@ $('notesIn').addEventListener('input',e=>{ state.notes=e.target.value; });
 
 // group header: colour chip + the option's full name
 function pick(id, it, extra){
-  $(id).innerHTML = '<span class="pdot" style="background:'+dotCss(it)+'"></span>'
+  $(id).innerHTML = '<span class="pdot" style="background:'+dotCss(it)+'">'+dotInner(it)+'</span>'
                   + it.n + (extra||'');
 }
 
