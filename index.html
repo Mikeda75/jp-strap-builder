@@ -23,6 +23,22 @@
      chrome under the stage plus the pin offset. */
   .cfg-stage svg{display:block;width:100%;height:auto;margin:0 auto;
     max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
+  /* photo gallery is the default view; the SVG rig is the supplemental
+     "Live Preview" tile in the thumb strip */
+  .cfg-stage #galMain{display:block;width:100%;height:auto;margin:0 auto;object-fit:contain;
+    max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
+  .cfg-stage:not(.live) svg{display:none}
+  .cfg-stage.live #galMain{display:none}
+  .gal-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+  .gal-thumbs .gt{flex:0 0 54px;height:54px;border-radius:9px;border:1.5px solid var(--line);
+    overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
+  .gal-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
+  .gal-thumbs .gt.on{border-color:var(--gold);opacity:1}
+  .gal-thumbs .gt:hover{opacity:1}
+  .gal-thumbs .gt-live{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;padding:0 14px;background:var(--gold);color:#1c1500;font-family:'Jost',sans-serif;
+    font-weight:700;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;line-height:1.2}
+  .gal-thumbs .gt-live.on{outline:2px solid #fff;outline-offset:-3px}
   .cfg-price{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:14px;padding:14px 18px;background:#242424;border:1px solid var(--line);border-radius:12px}
   .cfg-price .amt{font-family:'Bevan',serif;font-size:1.7rem;color:var(--gold)}
   .cfg-price .brk{font-size:.78rem;color:var(--muted);text-align:right;line-height:1.5}
@@ -198,7 +214,8 @@
 
       <!-- ================= PREVIEW ================= -->
       <div class="cfg-preview">
-        <div class="cfg-stage">
+        <div class="cfg-stage" id="stage">
+<img id="galMain" alt="Custom radio strap product photo">
 <svg id="art" class="dbl" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
      style="--leather:#20191a;--stitch:#2fbf57;--hw:#26262a;--copper:#b87333;--paint:#191413;--outline:#39d353"
      aria-label="Live preview of your custom radio strap set">
@@ -602,6 +619,10 @@
 </g>
 </svg>
         </div>
+
+        <!-- listing photos are the default view; the SVG rig is the Live
+             Preview tile. Thumbs are built by JS from GALLERY below. -->
+        <div class="gal-thumbs" id="galThumbs" role="tablist" aria-label="Product views"></div>
 
         <div class="cfg-price">
           <div><span style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)">Your rig</span><br><span class="amt" id="price">$114.99</span></div>
@@ -1238,6 +1259,54 @@ document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',
 }));
 
 render();
+
+// ---------------- gallery / live preview toggle ----------------
+// The listing's real photos are the default view; the SVG rig is the
+// supplemental "Live Preview" tile. URLs come from mockup/data/products.json
+// (products_radio-strap) - re-extract regenerates that list, update here too.
+const GALLERY = [
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/792/Combo1__67396.1728580084.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/790/Combo_3__89358.1763183684.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/789/Combo_4__77894.1763183684.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/970/Wagner__87277.1763183686.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1201/Leather_Colors__64702.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1198/Paint_Colors-_Standard__52877.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1200/Paint_Colors-_Themed__33366.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1205/Stamps_pg1__75335.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1204/Stamps_pg2__97480.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1203/Stamps_pg3__10156.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1202/Stamps_pg4__70682.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1199/Stitching_Colors__12548.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/395/29161AF4-5818-4A46-AF57-ABD257F3B64C__34477.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/791/Combo2__61045.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/377/IMG_0268__04981.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/974/brown__47303.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/972/Saddle_Tan__09563.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/973/camo__94636.1784234560.jpg'
+];
+(function(){
+  const stage=$('stage'), main=$('galMain'), strip=$('galThumbs');
+  function select(t){
+    strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    if(t.dataset.src){ stage.classList.remove('live'); main.src=t.dataset.src; }
+    else stage.classList.add('live');
+  }
+  const live=document.createElement('button');
+  live.type='button'; live.className='gt gt-live'; live.setAttribute('role','tab');
+  live.innerHTML='<span>Live</span><span>Preview</span>';
+  live.title='See your option choices on the interactive preview';
+  live.addEventListener('click',()=>select(live));
+  strip.appendChild(live);
+  GALLERY.forEach((u,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='gt'; b.dataset.src=u; b.setAttribute('role','tab');
+    b.innerHTML='<img loading="lazy" src="'+u+'" alt="Listing photo '+(i+1)+'">';
+    b.addEventListener('click',()=>select(b));
+    strip.appendChild(b);
+  });
+  select(strip.children[1]);          // first photo is the default view
+})();
 </script>
 
 </body>
