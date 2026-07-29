@@ -667,13 +667,13 @@
         </div>
 
         <div class="cg">
-          <div class="cg-h"><span class="num">06</span><h3>Text Paint Color</h3><span class="req">Required</span><span class="pick" id="pick-paint"></span></div>
+          <div class="cg-h"><span class="num">06</span><h3>Text Paint Color</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="paint">Photos</button><span class="pick" id="pick-paint"></span></div>
           <p class="cg-note">Fill color for the lettering. Themed finishes — flags, camo, tie dye, flames — add <b>+$15</b>.</p>
           <div class="sw-grid" id="g-paint"></div>
         </div>
 
         <div class="cg">
-          <div class="cg-h"><span class="num">07</span><h3>Text Outline Color</h3><span class="req">Required</span><span class="pick" id="pick-outline"></span></div>
+          <div class="cg-h"><span class="num">07</span><h3>Text Outline Color</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="outline">Photos</button><span class="pick" id="pick-outline"></span></div>
           <p class="cg-note">Outline around each letter. Pick <b>None</b> for unoutlined text.</p>
           <div class="sw-grid" id="g-outline"></div>
         </div>
@@ -781,7 +781,7 @@
     <button type="button" class="modal-x" aria-label="Close">&times;</button>
     <h2 id="photoTitle"></h2>
     <p id="photoNote"></p>
-    <img id="photoImg" class="swatch-photo" alt="">
+    <div id="photoBody"></div>
   </div>
 </div>
 
@@ -1213,16 +1213,27 @@ addEventListener('keydown',e=>{ if(e.key==='Escape')
 
 $('sizeGuideBtn').addEventListener('click',()=>openModal($('sizeModal')));
 
+const PAINT_STD=['assets/swatch-paint-standard.jpg','Standard paints'];
 const PHOTOS={
-  leather:['assets/swatch-leather.jpg','Leather Colors',
-           'Photographed on real bridle leather. Shows the ten standard colors — the five splatter finishes are painted to order and are not on this chart.'],
-  stitch :['assets/swatch-stitching.jpg','Stitching Colors',
-           'Real thread stitched into black leather, so you can judge it against the leather rather than a flat color chip.'],
+  leather:{t:'Leather Colors',
+           n:'Photographed on real bridle leather. Shows the ten standard colors — the five splatter finishes are painted to order and are not on this chart.',
+           i:[['assets/swatch-leather.jpg','']]},
+  stitch :{t:'Stitching Colors',
+           n:'Real thread stitched into black leather, so you can judge it against the leather rather than a flat color chip.',
+           i:[['assets/swatch-stitching.jpg','']]},
+  paint  :{t:'Text Paint Colors',
+           n:'Hand-painted letters, photographed. Themed finishes add +$15.',
+           i:[PAINT_STD,['assets/swatch-paint-themed.jpg','Themed finishes — +$15']]},
+  outline:{t:'Text Outline Colors',
+           n:'Outlines use the same standard paints. The themed finishes are paint-only — they are not offered as an outline.',
+           i:[PAINT_STD]},
 };
 document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>{
-  const [src,title,note]=PHOTOS[b.dataset.photo];
-  $('photoImg').src=src; $('photoImg').alt=title+' chart';
-  $('photoTitle').textContent=title; $('photoNote').textContent=note;
+  const p=PHOTOS[b.dataset.photo];
+  $('photoTitle').textContent=p.t; $('photoNote').textContent=p.n;
+  $('photoBody').innerHTML=p.i.map(([src,cap])=>
+      (cap?'<h3>'+cap+'</h3>':'')
+    + '<img class="swatch-photo" src="'+src+'" alt="'+p.t+(cap?' — '+cap:'')+'">').join('');
   openModal($('photoModal'));
 }));
 
