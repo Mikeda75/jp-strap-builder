@@ -64,10 +64,6 @@
   .gal-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
   .gal-thumbs .gt.on{border-color:var(--gold);opacity:1}
   .gal-thumbs .gt:hover{opacity:1}
-  .gal-thumbs .gt-live{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;padding:0 14px;background:var(--gold);color:#1c1500;font-family:'Jost',sans-serif;
-    font-weight:700;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;line-height:1.2}
-  .gal-thumbs .gt-live.on{outline:2px solid #fff;outline-offset:-3px}
   .cfg-price{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:12px 18px;background:#242424;border:1px solid var(--line);border-radius:12px}
   .cfg-price .amt{font-family:'Bevan',serif;font-size:1.7rem;color:var(--gold)}
   .cfg-price .brk{font-size:.78rem;color:var(--muted);text-align:right;line-height:1.5}
@@ -1322,25 +1318,18 @@ const GALLERY = [
 (function(){
   const stage=$('stage'), main=$('galMain'), strip=$('galThumbs'),
         slot=$('miniSlot'), miniBtn=$('miniBtn'), artEl=$('art');
-  let liveTile;
   function setLive(on){
     stage.classList.toggle('live',on);
     stage.classList.remove('peek');
     (on?stage:slot).appendChild(artEl);
     miniBtn.style.visibility=on?'hidden':'';
+    if(on) strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
   }
   function select(t){
     strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
     t.classList.add('on');
-    if(t.dataset.src){ setLive(false); main.src=t.dataset.src; }
-    else setLive(true);
+    setLive(false); main.src=t.dataset.src;
   }
-  liveTile=document.createElement('button');
-  liveTile.type='button'; liveTile.className='gt gt-live'; liveTile.setAttribute('role','tab');
-  liveTile.innerHTML='<span>Live</span><span>Preview</span>';
-  liveTile.title='See your option choices on the interactive preview';
-  liveTile.addEventListener('click',()=>select(liveTile));
-  strip.appendChild(liveTile);
   GALLERY.forEach((u,i)=>{
     const b=document.createElement('button');
     b.type='button'; b.className='gt'; b.dataset.src=u; b.setAttribute('role','tab');
@@ -1348,8 +1337,8 @@ const GALLERY = [
     b.addEventListener('click',()=>select(b));
     strip.appendChild(b);
   });
-  miniBtn.addEventListener('click',()=>select(liveTile));
-  select(strip.children[1]);          // first photo is the default view
+  miniBtn.addEventListener('click',()=>setLive(true));
+  select(strip.children[0]);          // first photo is the default view
 
   // scrollbar-less strip: vertical wheel pans it, edge fades track position
   strip.addEventListener('wheel',e=>{
@@ -1372,9 +1361,7 @@ const GALLERY = [
     const now=VIS.map(k=>state[k]).join();
     if(now===last) return;
     last=now;
-    [liveTile,miniBtn].forEach(el=>{
-      el.classList.remove('ping'); void el.offsetWidth; el.classList.add('ping');
-    });
+    miniBtn.classList.remove('ping'); void miniBtn.offsetWidth; miniBtn.classList.add('ping');
     if(!peeked && !stage.classList.contains('live')){
       peeked=true;                    // once per visit, ever
       stage.classList.add('live','peek');
@@ -1383,8 +1370,7 @@ const GALLERY = [
       setTimeout(()=>{
         // put the photo back unless the user opened the live view meanwhile
         if(stage.classList.contains('peek')){
-          const on=strip.querySelector('.gt.on');
-          select(on && on.dataset.src ? on : strip.children[1]);
+          select(strip.querySelector('.gt.on') || strip.children[0]);
         }
       },1600);
     }
