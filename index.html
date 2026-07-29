@@ -106,6 +106,23 @@
   .sw-item .dot,.cg-h .pick .pdot{overflow:hidden;position:relative}
   .sw-item .dot>svg,.cg-h .pick .pdot>svg{position:absolute;left:0;top:0;width:100%;height:100%}
 
+  .fit-wrap{overflow-x:auto;margin:0 -4px 10px}
+  .fit-tbl{border-collapse:separate;border-spacing:3px;font-size:.68rem;margin:0 auto}
+  .fit-tbl th{font-weight:600;color:var(--muted);white-space:nowrap;padding:0 3px;
+    font-size:.6rem;letter-spacing:.04em}
+  .fit-tbl thead th{text-align:center}
+  .fit-tbl tbody th{text-align:right;color:rgba(255,255,255,.8)}
+  .fit{width:100%;min-width:34px;border:0;border-radius:5px;padding:5px 0;cursor:pointer;
+    font-family:Jost,system-ui,sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.03em;
+    color:#12100e;transition:transform .12s,box-shadow .12s}
+  .fit:hover{transform:scale(1.14);box-shadow:0 0 0 2px var(--gold)}
+  .fit-M{background:#8fbf7a}
+  .fit-L{background:#e8b84b}
+  .fit-X{background:#79a8d8}
+  .fit-C{background:#6f6a63;color:#f2efe8}
+  .fit-key{font-size:.72rem;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+  .fit-key .fit{width:auto;min-width:0;padding:3px 7px;cursor:default;margin-left:8px}
+  .fit-key .fit:hover{transform:none;box-shadow:none}
   /* size guide */
   .guide-btn{background:transparent;border:1px solid rgba(247,184,41,.55);color:var(--gold);
     font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
@@ -702,6 +719,17 @@
     <button type="button" class="modal-x" id="sizeModalX" aria-label="Close">&times;</button>
     <h2 id="sizeModalTitle">Radio Strap Sizing</h2>
 
+    <h3 style="margin-top:0">Suggested size</h3>
+    <p>Find your height and weight, then tap the cell to set your length.
+       <b>To ensure a perfect fit, please measure yourself</b> — the chart is a
+       starting point, not a substitute.</p>
+    <div class="fit-wrap" id="fitChart"></div>
+    <p class="fit-key"><span class="fit fit-M">M</span> Medium
+       <span class="fit fit-L">L</span> Large
+       <span class="fit fit-X">XL</span> X-Large
+       <span class="fit fit-C">C</span> Custom — put your measurement in the notes</p>
+
+    <h3>Length ranges</h3>
     <table class="size-tbl">
       <thead><tr><th>Size</th><th>Overall length</th></tr></thead>
       <tbody>
@@ -1102,6 +1130,57 @@ if(q.has('l')){
   }
   if(q.has('n')){ state.rear=q.get('n'); $('rearIn').value=state.rear; }
 }
+// ---------------- suggested size chart ----------------
+// From the Shopify build's chart: height down the side, weight across the top.
+// M = Medium, L = Large, X = X-Large, C = Custom (outside the stock ranges, so it
+// goes in the notes). Rows are strings so the whole 14x8 grid stays checkable at
+// a glance against the source.
+const FIT_W = ['110-130','130-160','160-190','190-220','220-250','250-280','280-310','310-340'];
+const FIT_H = ['5\'4"','5\'5"','5\'6"','5\'7"','5\'8"','5\'9"','5\'10"',
+               '5\'11"','6\'0"','6\'1"','6\'2"','6\'3"','6\'4"','6\'5"'];
+const FIT = [
+  'CCCMMMMM',   // 5'4"
+  'CCCMMMLL',   // 5'5"
+  'CMMMMMLL',   // 5'6"
+  'MMMMMLLL',   // 5'7"
+  'MMMMLLLL',   // 5'8"
+  'MMMLLLLX',   // 5'9"
+  'MMMLLLLC',   // 5'10"
+  'MMMLLLXC',   // 5'11"
+  'MMLLLXXC',   // 6'0"
+  'MMLLXXXC',   // 6'1"
+  'MMLLXXCC',   // 6'2"
+  'LLLXXCCC',   // 6'3"
+  'LXXXXCCC',   // 6'4"
+  'XXXXCCCC',   // 6'5"
+];
+const FIT_NAME = {M:'Medium', L:'Large', X:'X-Large', C:'Custom'};
+const FIT_IDX  = {M:0, L:1, X:2, C:3};          // into LENGTH
+
+function buildFitChart(){
+  const t=document.createElement('table');
+  t.className='fit-tbl';
+  let h='<thead><tr><th></th>';
+  FIT_W.forEach(w=>h+='<th>'+w+'</th>');
+  h+='</tr></thead><tbody>';
+  FIT.forEach((row,r)=>{
+    h+='<tr><th>'+FIT_H[r]+'</th>';
+    [...row].forEach((c,i)=>{
+      h+='<td><button type="button" class="fit fit-'+c+'" data-len="'+FIT_IDX[c]+'"'
+       + ' title="'+FIT_H[r]+', '+FIT_W[i]+' lbs — '+FIT_NAME[c]+'">'
+       + c.replace('X','XL')+'</button></td>';
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+  t.addEventListener('click',e=>{
+    const b=e.target.closest('.fit'); if(!b) return;
+    state.length=+b.dataset.len; render(); closeGuide();
+  });
+  $('fitChart').appendChild(t);
+}
+buildFitChart();
+
 // ---------------- size guide ----------------
 const sizeModal=$('sizeModal');
 const openGuide =()=>{ sizeModal.hidden=false; $('sizeModalX').focus(); };
