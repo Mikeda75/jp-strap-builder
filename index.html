@@ -70,6 +70,16 @@
      Set this back to flex to bring the chips back. */
   .zoombar{display:none;gap:8px;margin-top:12px}
   .zoombar .chip{font-size:11px;padding:7px 16px}
+  .about-strap{border-top:1px solid var(--line);padding:64px 0 76px;margin-top:26px}
+  .about-strap .eyebrow{color:var(--gold)}
+  .about-strap h2{font-size:clamp(1.3rem,2.4vw,1.9rem);margin:8px 0 30px}
+  .about-cols{display:grid;grid-template-columns:1fr 1fr;gap:52px}
+  .about-cols h3{font-family:'Jost',sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.14em;font-size:.85rem;color:var(--gold);margin:26px 0 10px}
+  .about-cols h3:first-child{margin-top:0}
+  .about-cols p,.about-cols li{font-size:.92rem;line-height:1.75;color:#cfcfcf;margin:0 0 14px}
+  .about-cols ul{margin:0 0 14px;padding-left:20px}
+  @media (max-width:960px){.about-cols{grid-template-columns:1fr}}
   /* ---- control groups ---- */
   .cg{margin-bottom:34px;padding-bottom:30px;border-bottom:1px solid var(--line)}
   .cg:last-child{border-bottom:0}
@@ -764,6 +774,58 @@
     </div>
   </div>
 </div>
+
+<!-- The listing's own description, cleaned of scrape mojibake. The external
+     STAMP IMAGES blog link became the stamps Photo Swatches dialog, and the
+     sizing prose stays here too even though the Size guide dialog repeats it -
+     this block is the faithful "about" text from the original product page. -->
+<section class="about-strap">
+  <div class="wrap">
+    <span class="eyebrow">From The Listing</span>
+    <h2 class="bevan">About The Custom Radio Strap</h2>
+    <div class="about-cols">
+      <div>
+        <p>Our custom leather radio straps are made to stand up to the extreme conditions that
+           firefighters and EMTs deal with everyday. Our radio straps are 1.5 inches wide and made
+           with 10&ndash;12 oz. english bridle leather. We use heavy duty hardware and copper rivets
+           to ensure your strap will handle anything you can throw at it. All of our custom products
+           are handmade to order.</p>
+        <p>If you would like a leather color, stitching color, or paint color that is not listed in
+           the options, reach out to us and we will make it happen. We also offer custom image
+           stamps &mdash; so if you are looking to have your department&rsquo;s logo or a general
+           image that is not listed as an option, send us an email with your request.</p>
+        <h3>Things To Know</h3>
+        <p>&ndash; We paint all image stamps with a standard paint theme. If you would like them
+           painted a specific way, please mention it in the notes section.</p>
+        <p>&ndash; If double stitch is chosen, keep in mind it may run thru the image stamps.</p>
+        <p><button type="button" class="guide-btn" data-photo="stamps">See Photo Swatches</button>
+           &nbsp;every stamp, photographed.</p>
+      </div>
+      <div>
+        <h3>Holster Sizes</h3>
+        <p>The dimensions below are the maximum dimensions for each holster size:</p>
+        <ul>
+          <li>Standard Holster &mdash; H 7.5&quot; &times; W 2.75&quot; &times; D 1.8&quot;</li>
+          <li>Extended Battery Holster &mdash; H 9&quot; &times; W 2.75&quot; &times; D 1.8&quot;</li>
+          <li>Wide Holster &mdash; H 7.5&quot; &times; W 3.125&quot; &times; D 2.125&quot;</li>
+          <li>Wide Extended Battery Holster &mdash; H 9&quot; &times; W 3.125&quot; &times; D 2.125&quot;</li>
+        </ul>
+        <h3>How To Measure Radio Strap Length</h3>
+        <p><b>Measuring your current strap:</b> lay your strap out flat on a bench or the floor.
+           Measure it from one end to the other <b>including the scissor snaps</b> on the ends.</p>
+        <p><b>If you do not have a strap:</b> you will need a piece of rope or webbing (to simulate
+           a radio strap) and a tape measure. Drape it over your shoulder, bring one end and the
+           long side together at your hip (opposite side of your shoulder), and pinch it where you
+           would like the top of the radio holster to sit. Lay it out flat and measure from the end
+           to the pinched spot &mdash; that will be your measurement.</p>
+        <p><b>If it is a gift and you are not able to take a measurement:</b> include the
+           recipient&rsquo;s approximate height and build (or weight) and we will make the strap
+           accordingly. If by chance you receive the strap and it is a few inches too small or too
+           big, email us and we will fix it at no additional charge.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Size guide. The live listing has no chart image or linked page — this is the
      measuring guidance from its product description, verbatim, plus the length
