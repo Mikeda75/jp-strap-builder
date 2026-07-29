@@ -28,6 +28,13 @@
   .cfg-stage #galMain{display:block;width:100%;height:auto;margin:0 auto;object-fit:contain;
     max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
   .cfg-stage.live #galMain{display:none}
+  .st-arrow{position:absolute;top:50%;transform:translateY(-50%);left:10px;z-index:2;
+    width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(21,21,21,.65);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0 0 3px}
+  .st-arrow.next{left:auto;right:10px}
+  .st-arrow:hover{background:var(--gold);color:#1c1500;border-color:var(--gold)}
+  .cfg-stage.live .st-arrow{display:none}
   /* in photo mode the real #art svg LIVES inside the price-box mini thumb —
      one element moved between slots, so every CSS toggle (double stitch,
      splatter, holster on/off) keeps working at both sizes */
@@ -36,6 +43,7 @@
     border:1px solid var(--line);border-radius:10px;padding:5px 9px 5px 5px;cursor:pointer}
   .mini-slot{width:46px;height:46px;border-radius:7px;overflow:hidden;background:#1c1c1c;display:block}
   .mini-slot svg{max-height:46px}
+  .mini-slot img{width:100%;height:100%;object-fit:cover;display:none}
   .mini-cta{font-family:'Jost',sans-serif;font-weight:700;font-size:.56rem;letter-spacing:.14em;
     text-transform:uppercase;color:var(--gold);text-align:left;line-height:1.35}
   .mini:hover{border-color:var(--gold)}
@@ -49,17 +57,10 @@
     text-transform:uppercase;padding:5px 12px;border-radius:200px}
   .cfg-stage.peek svg{animation:peekIn .3s ease-out}
   @keyframes peekIn{from{opacity:.2}to{opacity:1}}
-  /* no scrollbar chrome: the strip still pans (wheel, drag, touch) and the
-     edge fades say "there's more" instead of a bar */
-  .gal-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none;
-    -webkit-mask:linear-gradient(90deg,#000 calc(100% - 42px),transparent);
-            mask:linear-gradient(90deg,#000 calc(100% - 42px),transparent)}
-  .gal-thumbs::-webkit-scrollbar{display:none}
-  .gal-thumbs.mid{-webkit-mask:linear-gradient(90deg,transparent,#000 42px,#000 calc(100% - 42px),transparent);
-                          mask:linear-gradient(90deg,transparent,#000 42px,#000 calc(100% - 42px),transparent)}
-  .gal-thumbs.end{-webkit-mask:linear-gradient(90deg,transparent,#000 42px);
-                          mask:linear-gradient(90deg,transparent,#000 42px)}
-  .gal-thumbs .gt{flex:0 0 54px;height:54px;border-radius:9px;border:1.5px solid var(--line);
+  /* every photo visible at once: two fixed rows, no scrolling
+     (JS sets the column count to ceil(n/2)) */
+  .gal-thumbs{display:grid;gap:6px;margin-top:10px}
+  .gal-thumbs .gt{aspect-ratio:1;width:100%;border-radius:8px;border:1.5px solid var(--line);
     overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
   .gal-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
   .gal-thumbs .gt.on{border-color:var(--gold);opacity:1}
@@ -241,6 +242,8 @@
       <div class="cfg-preview">
         <div class="cfg-stage" id="stage">
 <img id="galMain" alt="Custom radio strap product photo">
+<button type="button" class="st-arrow" id="arrowPrev" aria-label="Previous photo">&#8249;</button>
+<button type="button" class="st-arrow next" id="arrowNext" aria-label="Next photo">&#8250;</button>
 <svg id="art" class="dbl" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
      style="--leather:#20191a;--stitch:#2fbf57;--hw:#26262a;--copper:#b87333;--paint:#191413;--outline:#39d353"
      aria-label="Live preview of your custom radio strap set">
@@ -651,8 +654,8 @@
 
         <div class="cfg-price">
           <button type="button" class="mini" id="miniBtn" title="See your build in the live preview" aria-label="See your build in the live preview">
-            <span class="mini-slot" id="miniSlot"></span>
-            <span class="mini-cta">See it<br>live</span>
+            <span class="mini-slot" id="miniSlot"><img id="miniImg" alt=""></span>
+            <span class="mini-cta" id="miniCta">See it<br>live</span>
           </button>
           <div><span style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)">Your rig</span><br><span class="amt" id="price">$114.99</span></div>
           <div class="brk" id="priceBrk">Base strap $114.99</div>
@@ -1318,17 +1321,23 @@ const GALLERY = [
 (function(){
   const stage=$('stage'), main=$('galMain'), strip=$('galThumbs'),
         slot=$('miniSlot'), miniBtn=$('miniBtn'), artEl=$('art');
+  const miniImg=$('miniImg'), miniCta=$('miniCta');
+  let lastTile=null;
+  function applyLive(on){
+    (on?stage:slot).appendChild(artEl);
+    miniImg.style.display=on?'block':'none';
+    miniCta.innerHTML=on?'Back to<br>photos':'See it<br>live';
+  }
   function setLive(on){
     stage.classList.toggle('live',on);
     stage.classList.remove('peek');
-    (on?stage:slot).appendChild(artEl);
-    miniBtn.style.visibility=on?'hidden':'';
+    applyLive(on);
     if(on) strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
   }
   function select(t){
     strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
-    t.classList.add('on');
-    setLive(false); main.src=t.dataset.src;
+    t.classList.add('on'); lastTile=t;
+    setLive(false); main.src=t.dataset.src; miniImg.src=t.dataset.src;
   }
   GALLERY.forEach((u,i)=>{
     const b=document.createElement('button');
@@ -1337,20 +1346,25 @@ const GALLERY = [
     b.addEventListener('click',()=>select(b));
     strip.appendChild(b);
   });
-  miniBtn.addEventListener('click',()=>setLive(true));
+  miniBtn.addEventListener('click',()=>{
+    if(stage.classList.contains('live')) select(lastTile||strip.children[0]);
+    else setLive(true);
+  });
   select(strip.children[0]);          // first photo is the default view
 
-  // scrollbar-less strip: vertical wheel pans it, edge fades track position
-  strip.addEventListener('wheel',e=>{
-    if(e.deltaY && !e.deltaX){ strip.scrollLeft+=e.deltaY; e.preventDefault(); }
-  },{passive:false});
-  function fades(){
-    const max=strip.scrollWidth-strip.clientWidth-1;
-    strip.classList.toggle('mid',strip.scrollLeft>1 && strip.scrollLeft<max);
-    strip.classList.toggle('end',strip.scrollLeft>=max);
+  // two fixed rows of thumbs, arrows step through the photos (with wraparound)
+  strip.style.gridTemplateColumns='repeat('+Math.ceil(GALLERY.length/2)+',1fr)';
+  function step(d){
+    const tiles=[...strip.querySelectorAll('.gt')];
+    const i=tiles.findIndex(t=>t.classList.contains('on'));
+    select(tiles[((i<0?0:i)+d+tiles.length)%tiles.length]);
   }
-  strip.addEventListener('scroll',fades,{passive:true});
-  fades();
+  $('arrowPrev').addEventListener('click',()=>step(-1));
+  $('arrowNext').addEventListener('click',()=>step(1));
+  document.addEventListener('keydown',e=>{
+    if(e.target.matches('input,textarea,select')||stage.classList.contains('live'))return;
+    if(e.key==='ArrowLeft')step(-1); else if(e.key==='ArrowRight')step(1);
+  });
 
   // --- engagement: gold ripple on every build change + one auto-peek ---
   const VIS=['leather','stitch','ds','paint','outline','holster','hw'];
@@ -1365,8 +1379,7 @@ const GALLERY = [
     if(!peeked && !stage.classList.contains('live')){
       peeked=true;                    // once per visit, ever
       stage.classList.add('live','peek');
-      stage.appendChild(artEl);
-      miniBtn.style.visibility='hidden';
+      applyLive(true);
       setTimeout(()=>{
         // put the photo back unless the user opened the live view meanwhile
         if(stage.classList.contains('peek')){
