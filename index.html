@@ -27,8 +27,28 @@
      "Live Preview" tile in the thumb strip */
   .cfg-stage #galMain{display:block;width:100%;height:auto;margin:0 auto;object-fit:contain;
     max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
-  .cfg-stage:not(.live) svg{display:none}
   .cfg-stage.live #galMain{display:none}
+  /* in photo mode the real #art svg LIVES inside the price-box mini thumb —
+     one element moved between slots, so every CSS toggle (double stitch,
+     splatter, holster on/off) keeps working at both sizes */
+  #art{display:block;width:100%;height:auto}
+  .mini{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:#151515;
+    border:1px solid var(--line);border-radius:10px;padding:5px 9px 5px 5px;cursor:pointer}
+  .mini-slot{width:46px;height:46px;border-radius:7px;overflow:hidden;background:#1c1c1c;display:block}
+  .mini-slot svg{max-height:46px}
+  .mini-cta{font-family:'Jost',sans-serif;font-weight:700;font-size:.56rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold);text-align:left;line-height:1.35}
+  .mini:hover{border-color:var(--gold)}
+  /* gold ripple when an option changes the build */
+  @keyframes buildPing{0%{box-shadow:0 0 0 0 rgba(247,184,41,.85)}100%{box-shadow:0 0 0 14px rgba(247,184,41,0)}}
+  .ping{animation:buildPing .7s ease-out}
+  /* one-time auto-peek: brief swap to the rig with a label so users know
+     what they are looking at */
+  .cfg-stage.peek::after{content:'Live preview';position:absolute;top:12px;right:12px;
+    background:var(--gold);color:#1c1500;font:700 .6rem 'Jost',sans-serif;letter-spacing:.18em;
+    text-transform:uppercase;padding:5px 12px;border-radius:200px}
+  .cfg-stage.peek svg{animation:peekIn .3s ease-out}
+  @keyframes peekIn{from{opacity:.2}to{opacity:1}}
   .gal-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
   .gal-thumbs .gt{flex:0 0 54px;height:54px;border-radius:9px;border:1.5px solid var(--line);
     overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
@@ -39,7 +59,7 @@
     gap:2px;padding:0 14px;background:var(--gold);color:#1c1500;font-family:'Jost',sans-serif;
     font-weight:700;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;line-height:1.2}
   .gal-thumbs .gt-live.on{outline:2px solid #fff;outline-offset:-3px}
-  .cfg-price{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:14px;padding:14px 18px;background:#242424;border:1px solid var(--line);border-radius:12px}
+  .cfg-price{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:12px 18px;background:#242424;border:1px solid var(--line);border-radius:12px}
   .cfg-price .amt{font-family:'Bevan',serif;font-size:1.7rem;color:var(--gold)}
   .cfg-price .brk{font-size:.78rem;color:var(--muted);text-align:right;line-height:1.5}
   .cfg-actions{display:flex;gap:10px;margin-top:12px}
@@ -625,6 +645,10 @@
         <div class="gal-thumbs" id="galThumbs" role="tablist" aria-label="Product views"></div>
 
         <div class="cfg-price">
+          <button type="button" class="mini" id="miniBtn" title="See your build in the live preview" aria-label="See your build in the live preview">
+            <span class="mini-slot" id="miniSlot"></span>
+            <span class="mini-cta">See it<br>live</span>
+          </button>
           <div><span style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)">Your rig</span><br><span class="amt" id="price">$114.99</span></div>
           <div class="brk" id="priceBrk">Base strap $114.99</div>
         </div>
@@ -1261,8 +1285,10 @@ document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',
 render();
 
 // ---------------- gallery / live preview toggle ----------------
-// The listing's real photos are the default view; the SVG rig is the
-// supplemental "Live Preview" tile. URLs come from mockup/data/products.json
+// The listing's real photos are the default view. The rig is supplemental:
+// it parks as a mini "See it live" thumb in the price box, and the SAME svg
+// node moves to the stage when the user opens the live view (or during the
+// one-time auto-peek). URLs come from mockup/data/products.json
 // (products_radio-strap) - re-extract regenerates that list, update here too.
 const GALLERY = [
   'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/792/Combo1__67396.1728580084.jpg',
@@ -1285,19 +1311,27 @@ const GALLERY = [
   'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/973/camo__94636.1784234560.jpg'
 ];
 (function(){
-  const stage=$('stage'), main=$('galMain'), strip=$('galThumbs');
+  const stage=$('stage'), main=$('galMain'), strip=$('galThumbs'),
+        slot=$('miniSlot'), miniBtn=$('miniBtn'), artEl=$('art');
+  let liveTile;
+  function setLive(on){
+    stage.classList.toggle('live',on);
+    stage.classList.remove('peek');
+    (on?stage:slot).appendChild(artEl);
+    miniBtn.style.visibility=on?'hidden':'';
+  }
   function select(t){
     strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
     t.classList.add('on');
-    if(t.dataset.src){ stage.classList.remove('live'); main.src=t.dataset.src; }
-    else stage.classList.add('live');
+    if(t.dataset.src){ setLive(false); main.src=t.dataset.src; }
+    else setLive(true);
   }
-  const live=document.createElement('button');
-  live.type='button'; live.className='gt gt-live'; live.setAttribute('role','tab');
-  live.innerHTML='<span>Live</span><span>Preview</span>';
-  live.title='See your option choices on the interactive preview';
-  live.addEventListener('click',()=>select(live));
-  strip.appendChild(live);
+  liveTile=document.createElement('button');
+  liveTile.type='button'; liveTile.className='gt gt-live'; liveTile.setAttribute('role','tab');
+  liveTile.innerHTML='<span>Live</span><span>Preview</span>';
+  liveTile.title='See your option choices on the interactive preview';
+  liveTile.addEventListener('click',()=>select(liveTile));
+  strip.appendChild(liveTile);
   GALLERY.forEach((u,i)=>{
     const b=document.createElement('button');
     b.type='button'; b.className='gt'; b.dataset.src=u; b.setAttribute('role','tab');
@@ -1305,7 +1339,35 @@ const GALLERY = [
     b.addEventListener('click',()=>select(b));
     strip.appendChild(b);
   });
+  miniBtn.addEventListener('click',()=>select(liveTile));
   select(strip.children[1]);          // first photo is the default view
+
+  // --- engagement: gold ripple on every build change + one auto-peek ---
+  const VIS=['leather','stitch','ds','paint','outline','holster','hw'];
+  let last=VIS.map(k=>state[k]).join(), peeked=false;
+  const baseRender=render;
+  render=function(){
+    baseRender();
+    const now=VIS.map(k=>state[k]).join();
+    if(now===last) return;
+    last=now;
+    [liveTile,miniBtn].forEach(el=>{
+      el.classList.remove('ping'); void el.offsetWidth; el.classList.add('ping');
+    });
+    if(!peeked && !stage.classList.contains('live')){
+      peeked=true;                    // once per visit, ever
+      stage.classList.add('live','peek');
+      stage.appendChild(artEl);
+      miniBtn.style.visibility='hidden';
+      setTimeout(()=>{
+        // put the photo back unless the user opened the live view meanwhile
+        if(stage.classList.contains('peek')){
+          const on=strip.querySelector('.gt.on');
+          select(on && on.dataset.src ? on : strip.children[1]);
+        }
+      },1600);
+    }
+  };
 })();
 </script>
 
