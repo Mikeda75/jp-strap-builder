@@ -127,18 +127,14 @@
     max-height:296px;overflow:auto;background:#242424;border:1.5px solid var(--gold);
     border-radius:8px;padding:4px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
   .dd.open .dd-list{display:block}
-  .dd-opt{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:6px;
-    cursor:pointer;font-size:13px;line-height:1.3}
+  .dd-opt{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;
+    cursor:pointer;font-size:15px;line-height:1.3}
   .dd-opt:hover{background:rgba(247,184,41,.16)}
   .dd-opt.on{background:rgba(247,184,41,.26)}
-  .dd-ico{width:34px;height:34px;flex:none;border-radius:5px;background:#efe9dd;padding:2px;
+  .dd-ico{width:44px;height:44px;flex:none;border-radius:5px;background:#efe9dd;padding:2px;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
   .dd-ico.none{background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)}
   .dd-ico.photo{object-fit:contain;background:#26262a;padding:0}
-  .dd-find{position:sticky;top:0;z-index:1;display:block;width:100%;box-sizing:border-box;
-    background:#2e2e2e;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:#fff;
-    padding:7px 9px;font-family:Jost,system-ui,sans-serif;font-size:13px;margin-bottom:4px}
-  .dd-find:focus{outline:none;border-color:var(--gold)}
 
   /* splatter paint: an extra pass over the leather, off unless the chosen
      leather is one of the five splatter finishes */
@@ -1024,7 +1020,7 @@ const DIMS = ['', 'Standard — H 7.5" × W 2.75" × D 1.8"', 'Extended Battery 
 const HW   = [O('Nickel','#b9bdc4'), O('Black','#26262a'), O('Solid Brass','#a8853c',10)];
 const YESNO10 = [O('No'), O('Yes',null,10)];
 // photo stamps: cropped from the four stamp chart photographs
-const S=(n,f)=>({n,c:null,a:0,fx:null,s:n,img:'assets/stamps/'+f+'.jpg'});
+const S=(n,f)=>({n,c:null,a:0,fx:null,s:n,img:'assets/stamps/'+f+'.jpg?v=3'});
 const STAMPS = [
   O('None',null),
   S('Maltese Cross','maltese-cross'),
@@ -1248,16 +1244,8 @@ function closeStampMenus(){
 function stampPicker(list, mount, key){
   const el=$(mount);
   el.innerHTML='<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"></button>'
-             + '<div class="dd-list" role="listbox"><input class="dd-find" type="text" placeholder="Type to filter&hellip;" aria-label="Filter stamps"></div>';
-  const btn=el.querySelector('.dd-btn'), menu=el.querySelector('.dd-list'),
-        find=el.querySelector('.dd-find');
-  find.addEventListener('click',e=>e.stopPropagation());
-  find.addEventListener('input',()=>{
-    const q=find.value.trim().toLowerCase();
-    menu.querySelectorAll('.dd-opt').forEach(o=>{
-      o.style.display=list[+o.dataset.i].n.toLowerCase().includes(q)?'':'none';
-    });
-  });
+             + '<div class="dd-list" role="listbox"></div>';
+  const btn=el.querySelector('.dd-btn'), menu=el.querySelector('.dd-list');
   list.forEach((it,i)=>{
     const o=document.createElement('div');
     o.className='dd-opt'; o.dataset.i=i; o.setAttribute('role','option');
@@ -1270,9 +1258,7 @@ function stampPicker(list, mount, key){
     const open=el.classList.contains('open');
     closeStampMenus();
     if(!open){ el.classList.add('open'); btn.setAttribute('aria-expanded','true');
-      find.value=''; menu.querySelectorAll('.dd-opt').forEach(o=>o.style.display='');
-      const sel=menu.querySelector('.dd-opt.on'); if(sel) sel.scrollIntoView({block:'nearest'});
-      find.focus(); }
+      const sel=menu.querySelector('.dd-opt.on'); if(sel) sel.scrollIntoView({block:'nearest'}); }
   });
   el.refresh=()=>{
     const it=list[state[key]];
