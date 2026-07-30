@@ -86,6 +86,27 @@
   .ping{animation:buildPing .7s ease-out}
   @media (max-width:960px){.fs-stage svg,.fs-stage img#galMain{max-height:56vh}}
 
+  .dd{position:relative}
+  .dd-btn{width:100%;display:flex;align-items:center;gap:10px;background:#242424;
+    border:1.5px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;
+    padding:9px 32px 9px 10px;font-family:Jost,system-ui,sans-serif;font-size:13px;
+    cursor:pointer;text-align:left;position:relative}
+  .dd-btn::after{content:"";position:absolute;right:13px;top:50%;margin-top:-2px;
+    border:5px solid transparent;border-top-color:#f7b829}
+  .dd-btn:hover,.dd.open .dd-btn{border-color:#f7b829}
+  .dd-list{display:none;position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);
+    max-height:296px;overflow:auto;background:#242424;border:1.5px solid #f7b829;
+    border-radius:8px;padding:4px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
+  .dd.open .dd-list{display:block}
+  .dd-opt{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;
+    cursor:pointer;font-size:15px;line-height:1.3;color:#fff}
+  .dd-opt:hover{background:rgba(247,184,41,.16)}
+  .dd-opt.on{background:rgba(247,184,41,.26)}
+  .dd-ico{width:44px;height:44px;flex:none;border-radius:5px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .dd-ico.none{background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)}
+  .dd-ico.photo{object-fit:contain;background:#26262a;padding:4px}
+
 </style>
 <div class="pdp">
   <div class="wrap">
@@ -283,7 +304,7 @@
   const BASE = 36.99;
   function total(){
     let t = BASE;
-    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price]').forEach(c => t += +c.dataset.price);
+    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price], .dd-opt.on[data-price]').forEach(c => t += +c.dataset.price);
     document.querySelectorAll('select.opt-sel').forEach(s => {
       const o = s.selectedOptions[0];
       if (o && o.dataset.price) t += +o.dataset.price;
@@ -302,6 +323,35 @@
   document.querySelectorAll('.pdp-form .chip[data-toggle]').forEach(ch =>
     ch.addEventListener('click', () => { ch.classList.toggle('on'); total(); }));
   document.querySelectorAll('select.opt-sel').forEach(s => s.addEventListener('change', total));
+  // stamp thumbnail dropdowns
+  document.querySelectorAll('.pdp-form .dd').forEach(dd => {
+    const btn = dd.querySelector('.dd-btn'), menu = dd.querySelector('.dd-list');
+    function refresh(){
+      const on = menu.querySelector('.dd-opt.on');
+      btn.innerHTML = on ? on.innerHTML : 'Choose Options';
+    }
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = dd.classList.contains('open');
+      document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open'));
+      btn.setAttribute('aria-expanded', String(!open));
+      if (!open) {
+        dd.classList.add('open');
+        const sel = menu.querySelector('.dd-opt.on');
+        if (sel) sel.scrollIntoView({block:'nearest'});
+      }
+    });
+    menu.querySelectorAll('.dd-opt').forEach(o => o.addEventListener('click', e => {
+      e.stopPropagation();
+      menu.querySelectorAll('.dd-opt').forEach(x => x.classList.remove('on'));
+      o.classList.add('on');
+      dd.classList.remove('open');
+      refresh(); total();
+    }));
+    refresh();
+  });
+  document.addEventListener('click', () =>
+    document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
@@ -331,7 +381,7 @@
     total=function(){
       baseTotal();
       const picks=[];
-      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price]')
+      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price], .pdp-form .dd-opt.on[data-price]')
         .forEach(c=>{ if(+c.dataset.price>0) picks.push(c.textContent.trim()); });
       document.querySelectorAll('select.opt-sel').forEach(s=>{
         const o=s.selectedOptions[0];

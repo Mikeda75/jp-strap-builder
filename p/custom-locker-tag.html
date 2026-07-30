@@ -86,6 +86,27 @@
   .ping{animation:buildPing .7s ease-out}
   @media (max-width:960px){.fs-stage svg,.fs-stage img#galMain{max-height:56vh}}
 
+  .dd{position:relative}
+  .dd-btn{width:100%;display:flex;align-items:center;gap:10px;background:#242424;
+    border:1.5px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;
+    padding:9px 32px 9px 10px;font-family:Jost,system-ui,sans-serif;font-size:13px;
+    cursor:pointer;text-align:left;position:relative}
+  .dd-btn::after{content:"";position:absolute;right:13px;top:50%;margin-top:-2px;
+    border:5px solid transparent;border-top-color:#f7b829}
+  .dd-btn:hover,.dd.open .dd-btn{border-color:#f7b829}
+  .dd-list{display:none;position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);
+    max-height:296px;overflow:auto;background:#242424;border:1.5px solid #f7b829;
+    border-radius:8px;padding:4px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
+  .dd.open .dd-list{display:block}
+  .dd-opt{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;
+    cursor:pointer;font-size:15px;line-height:1.3;color:#fff}
+  .dd-opt:hover{background:rgba(247,184,41,.16)}
+  .dd-opt.on{background:rgba(247,184,41,.26)}
+  .dd-ico{width:44px;height:44px;flex:none;border-radius:5px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .dd-ico.none{background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)}
+  .dd-ico.photo{object-fit:contain;background:#26262a;padding:4px}
+
 </style>
 <div class="pdp">
   <div class="wrap">
@@ -179,249 +200,253 @@
     </div>
     <div class="opt-block">
       <div class="opt-name">04 — Left Stamp <b>· Required</b> <button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
-      <select class="text-in opt-sel">
-        <option value="">Choose Options</option>
-        <option data-price="0">None</option>
-        <option data-price="0">Fire Department Maltese Cross</option>
-        <option data-price="0">Maltese Cross</option>
-        <option data-price="0">Thin Red Line Maltese Cross</option>
-        <option data-price="0">FD Maltese Cross</option>
-        <option data-price="0">American Flag Maltese Cross</option>
-        <option data-price="0">IAFF Maltese Cross</option>
-        <option data-price="0">NJ FMBA</option>
-        <option data-price="0">343 Maltese Cross</option>
-        <option data-price="0">9/11 Pentagon Maltese Cross</option>
-        <option data-price="0">Maltese/ Star of Life</option>
-        <option data-price="0">Star of Life</option>
-        <option data-price="0">Firefighter</option>
-        <option data-price="0">Scramble Logo</option>
-        <option data-price="0">FD Skull</option>
-        <option data-price="0">Crossing Axes</option>
-        <option data-price="0">The Irons</option>
-        <option data-price="0">Fire Hydrant</option>
-        <option data-price="0">Closed Jaws</option>
-        <option data-price="0">Open Jaws</option>
-        <option data-price="0">Rescue 8</option>
-        <option data-price="0">Torch and Axes</option>
-        <option data-price="0">NFPA 704</option>
-        <option data-price="0">1 Vertical Bugle</option>
-        <option data-price="0">2 Vertical Bugles</option>
-        <option data-price="0">2 Crossed Bugles</option>
-        <option data-price="0">3 Crossed Bugles</option>
-        <option data-price="0">4 Crossed Bugles</option>
-        <option data-price="0">5 Crossed Bugles</option>
-        <option data-price="0">5 Year Badge</option>
-        <option data-price="0">10 Year Badge</option>
-        <option data-price="0">Police Badge</option>
-        <option data-price="0">U.S. Army</option>
-        <option data-price="0">Air Force</option>
-        <option data-price="0">Anchor</option>
-        <option data-price="0">Marine Corps EGA</option>
-        <option data-price="0">Jump Wings</option>
-        <option data-price="0">Combat Infantry</option>
-        <option data-price="0">Live To Ride</option>
-        <option data-price="0">American Flag</option>
-        <option data-price="0">Thin Red Line Flag</option>
-        <option data-price="0">Waving American Flag</option>
-        <option data-price="0">Waving Thin Red Line Flag</option>
-        <option data-price="0">Vertical American Flag</option>
-        <option data-price="0">Vertical Thin Red Line Flag</option>
-        <option data-price="0">American Axe Flag</option>
-        <option data-price="0">Tattered Thin Red Line Flag</option>
-        <option data-price="0">Eagle Thin Red Line Flag</option>
-        <option data-price="0">Punisher Skull Flag</option>
-        <option data-price="0">Punisher Skull Thin Red Line</option>
-        <option data-price="0">Dive Flag</option>
-        <option data-price="0">Canadian Flag</option>
-        <option data-price="0">Texas Flag</option>
-        <option data-price="0">Union Jack Flag</option>
-        <option data-price="0">Puerto Rican Flag</option>
-        <option data-price="0">Mexican Flag</option>
-        <option data-price="0">Guatemalan Flag</option>
-        <option data-price="0">French Flag</option>
-        <option data-price="0">Irish Flag</option>
-        <option data-price="0">Italian Flag</option>
-        <option data-price="0">Hungarian Flag</option>
-        <option data-price="0">Austrian Flag</option>
-        <option data-price="0">German Flag</option>
-        <option data-price="0">Russian Flag</option>
-        <option data-price="0">Norwegian Flag</option>
-        <option data-price="0">South African Flag</option>
-        <option data-price="0">Jamaican Flag</option>
-        <option data-price="0">South Korean Flag</option>
-        <option data-price="0">Japanese Flag</option>
-        <option data-price="0">Ukrainian Flag</option>
-        <option data-price="0">American/ Japanese Flag</option>
-        <option data-price="0">USA</option>
-        <option data-price="0">Cross</option>
-        <option data-price="0">Decorative Cross</option>
-        <option data-price="0">Orthodox Cross</option>
-        <option data-price="0">Ichthys Symbol</option>
-        <option data-price="0">Celtic Knot</option>
-        <option data-price="0">Fleur-de-lis</option>
-        <option data-price="0">12 Gauge Shot Gun Shell</option>
-        <option data-price="0">Baseball Bats &amp; Balls</option>
-        <option data-price="0">Baseball</option>
-        <option data-price="0">Soccer Ball</option>
-        <option data-price="0">Bulldog</option>
-        <option data-price="0">Smiley Face</option>
-        <option data-price="0">Radioactive Symbol</option>
-        <option data-price="0">Doughnut</option>
-        <option data-price="0">420 Leaf</option>
-        <option data-price="0">Feather</option>
-        <option data-price="0">Fighting Irish</option>
-        <option data-price="0">4 Leaf Clover</option>
-        <option data-price="0">Skull and Cross Bones</option>
-        <option data-price="0">Sugar Skull</option>
-        <option data-price="0">Lips</option>
-        <option data-price="0">Lady Bug</option>
-        <option data-price="0">Eagle Head</option>
-        <option data-price="0">Eagle</option>
-        <option data-price="0">Long Horn</option>
-        <option data-price="0">Cowboy</option>
-        <option data-price="0">Wolf</option>
-        <option data-price="0">Paw Prints</option>
-        <option data-price="0">Bear</option>
-        <option data-price="0">Rooster</option>
-        <option data-price="0">Goose</option>
-        <option data-price="0">Mustache</option>
-        <option data-price="0">Spade</option>
-        <option data-price="0">Flower</option>
-        <option data-price="0">Dollar Sign</option>
-        <option data-price="0">Question Mark</option>
-        <option data-price="0">Exclamation Point</option>
-        <option data-price="0">Star</option>
-        <option data-price="0">Music Note</option>
-        <option data-price="0">Heart</option>
-        <option data-price="0">Autism Awareness Puzzle Piece</option>
-        <option data-price="0">Autism Awareness Ribbon</option>
-        <option data-price="0">Breast Cancer Awareness Ribbon</option>
-        <option data-price="0">Suicide Prevention Ribbon</option>
-        <option data-price="0">Awareness Ribbon (Put Color In Notes)</option>
-      </select>
+      <div class="dd">
+        <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"></button>
+        <div class="dd-list" role="listbox">
+          <div class="dd-opt on" data-price="0" role="option" title="None"><span class="dd-ico none"></span><span>None</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fire Department Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/fire-dept-maltese.png" alt="" loading="lazy"><span>Fire Department Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/maltese-cross.png" alt="" loading="lazy"><span>Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Thin Red Line Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/thin-red-line-maltese.png" alt="" loading="lazy"><span>Thin Red Line Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="FD Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/fd-maltese.png" alt="" loading="lazy"><span>FD Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Flag Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/american-flag-maltese.png" alt="" loading="lazy"><span>American Flag Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="IAFF Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/iaff-maltese.png" alt="" loading="lazy"><span>IAFF Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="NJ FMBA"><img class="dd-ico photo" src="../assets/stamps-cut/nj-fmba.png" alt="" loading="lazy"><span>NJ FMBA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="343 Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/343-maltese-cross.png" alt="" loading="lazy"><span>343 Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="9/11 Pentagon Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/9-11-pentagon-maltese.png" alt="" loading="lazy"><span>9/11 Pentagon Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Maltese/ Star of Life"><img class="dd-ico photo" src="../assets/stamps-cut/maltese-star-of-life.png" alt="" loading="lazy"><span>Maltese/ Star of Life</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Star of Life"><img class="dd-ico photo" src="../assets/stamps-cut/star-of-life.png" alt="" loading="lazy"><span>Star of Life</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Firefighter"><img class="dd-ico photo" src="../assets/stamps-cut/firefighter.png" alt="" loading="lazy"><span>Firefighter</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Scramble Logo"><img class="dd-ico photo" src="../assets/stamps-cut/scramble-logo.png" alt="" loading="lazy"><span>Scramble Logo</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="FD Skull"><img class="dd-ico photo" src="../assets/stamps-cut/fd-skull.png" alt="" loading="lazy"><span>FD Skull</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Crossing Axes"><img class="dd-ico photo" src="../assets/stamps-cut/crossing-axes.png" alt="" loading="lazy"><span>Crossing Axes</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="The Irons"><img class="dd-ico photo" src="../assets/stamps-cut/the-irons.png" alt="" loading="lazy"><span>The Irons</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fire Hydrant"><img class="dd-ico photo" src="../assets/stamps-cut/fire-hydrant.png" alt="" loading="lazy"><span>Fire Hydrant</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Closed Jaws"><img class="dd-ico photo" src="../assets/stamps-cut/closed-jaws.png" alt="" loading="lazy"><span>Closed Jaws</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Open Jaws"><img class="dd-ico photo" src="../assets/stamps-cut/open-jaws.png" alt="" loading="lazy"><span>Open Jaws</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Rescue 8"><img class="dd-ico photo" src="../assets/stamps-cut/rescue-8.png" alt="" loading="lazy"><span>Rescue 8</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Torch and Axes"><img class="dd-ico photo" src="../assets/stamps-cut/torch-and-axes.png" alt="" loading="lazy"><span>Torch and Axes</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="NFPA 704"><img class="dd-ico photo" src="../assets/stamps-cut/nfpa-704.png" alt="" loading="lazy"><span>NFPA 704</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="1 Vertical Bugle"><img class="dd-ico photo" src="../assets/stamps-cut/1-vertical-bugle.png" alt="" loading="lazy"><span>1 Vertical Bugle</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="2 Vertical Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/2-vertical-bugles.png" alt="" loading="lazy"><span>2 Vertical Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="2 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/2-crossed-bugles.png" alt="" loading="lazy"><span>2 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="3 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/3-crossed-bugles.png" alt="" loading="lazy"><span>3 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="4 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/4-crossed-bugles.png" alt="" loading="lazy"><span>4 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="5 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/5-crossed-bugles.png" alt="" loading="lazy"><span>5 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="5 Year Badge"><img class="dd-ico photo" src="../assets/stamps-cut/5-year-badge.png" alt="" loading="lazy"><span>5 Year Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="10 Year Badge"><img class="dd-ico photo" src="../assets/stamps-cut/10-year-badge.png" alt="" loading="lazy"><span>10 Year Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Police Badge"><img class="dd-ico photo" src="../assets/stamps-cut/police-badge.png" alt="" loading="lazy"><span>Police Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="U.S. Army"><img class="dd-ico photo" src="../assets/stamps-cut/u-s-army.png" alt="" loading="lazy"><span>U.S. Army</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Air Force"><img class="dd-ico photo" src="../assets/stamps-cut/air-force.png" alt="" loading="lazy"><span>Air Force</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Anchor"><img class="dd-ico photo" src="../assets/stamps-cut/anchor.png" alt="" loading="lazy"><span>Anchor</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Marine Corps EGA"><img class="dd-ico photo" src="../assets/stamps-cut/marine-corps-ega.png" alt="" loading="lazy"><span>Marine Corps EGA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Jump Wings"><img class="dd-ico photo" src="../assets/stamps-cut/jump-wings.png" alt="" loading="lazy"><span>Jump Wings</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Combat Infantry"><img class="dd-ico photo" src="../assets/stamps-cut/combat-infantry.png" alt="" loading="lazy"><span>Combat Infantry</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Live To Ride"><img class="dd-ico photo" src="../assets/stamps-cut/live-to-ride.png" alt="" loading="lazy"><span>Live To Ride</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-flag.png" alt="" loading="lazy"><span>American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/thin-red-line-flag.png" alt="" loading="lazy"><span>Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Waving American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/waving-american-flag.png" alt="" loading="lazy"><span>Waving American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Waving Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/waving-thin-red-line-flag.png" alt="" loading="lazy"><span>Waving Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Vertical American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/vertical-american-flag.png" alt="" loading="lazy"><span>Vertical American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Vertical Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/vertical-thin-red-line-flag.png" alt="" loading="lazy"><span>Vertical Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Axe Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-axe-flag.png" alt="" loading="lazy"><span>American Axe Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Tattered Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/tattered-thin-red-line-flag.png" alt="" loading="lazy"><span>Tattered Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/eagle-thin-red-line-flag.png" alt="" loading="lazy"><span>Eagle Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Punisher Skull Flag"><img class="dd-ico photo" src="../assets/stamps-cut/punisher-skull-flag.png" alt="" loading="lazy"><span>Punisher Skull Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Punisher Skull Thin Red Line"><img class="dd-ico photo" src="../assets/stamps-cut/punisher-skull-thin-red-line.png" alt="" loading="lazy"><span>Punisher Skull Thin Red Line</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Dive Flag"><img class="dd-ico photo" src="../assets/stamps-cut/dive-flag.png" alt="" loading="lazy"><span>Dive Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Canadian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/canadian-flag.png" alt="" loading="lazy"><span>Canadian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Texas Flag"><img class="dd-ico photo" src="../assets/stamps-cut/texas-flag.png" alt="" loading="lazy"><span>Texas Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Union Jack Flag"><img class="dd-ico photo" src="../assets/stamps-cut/union-jack-flag.png" alt="" loading="lazy"><span>Union Jack Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Puerto Rican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/puerto-rican-flag.png" alt="" loading="lazy"><span>Puerto Rican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Mexican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/mexican-flag.png" alt="" loading="lazy"><span>Mexican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Guatemalan Flag"><img class="dd-ico photo" src="../assets/stamps-cut/guatemalan-flag.png" alt="" loading="lazy"><span>Guatemalan Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="French Flag"><img class="dd-ico photo" src="../assets/stamps-cut/french-flag.png" alt="" loading="lazy"><span>French Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Irish Flag"><img class="dd-ico photo" src="../assets/stamps-cut/irish-flag.png" alt="" loading="lazy"><span>Irish Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Italian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/italian-flag.png" alt="" loading="lazy"><span>Italian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Hungarian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/hungarian-flag.png" alt="" loading="lazy"><span>Hungarian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Austrian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/austrian-flag.png" alt="" loading="lazy"><span>Austrian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="German Flag"><img class="dd-ico photo" src="../assets/stamps-cut/german-flag.png" alt="" loading="lazy"><span>German Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Russian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/russian-flag.png" alt="" loading="lazy"><span>Russian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Norwegian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/norwegian-flag.png" alt="" loading="lazy"><span>Norwegian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="South African Flag"><img class="dd-ico photo" src="../assets/stamps-cut/south-african-flag.png" alt="" loading="lazy"><span>South African Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Jamaican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/jamaican-flag.png" alt="" loading="lazy"><span>Jamaican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="South Korean Flag"><img class="dd-ico photo" src="../assets/stamps-cut/south-korean-flag.png" alt="" loading="lazy"><span>South Korean Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Japanese Flag"><img class="dd-ico photo" src="../assets/stamps-cut/japanese-flag.png" alt="" loading="lazy"><span>Japanese Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Ukrainian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/ukrainian-flag.png" alt="" loading="lazy"><span>Ukrainian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American/ Japanese Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-japanese-flag.png" alt="" loading="lazy"><span>American/ Japanese Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="USA"><img class="dd-ico photo" src="../assets/stamps-cut/usa.png" alt="" loading="lazy"><span>USA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Cross"><img class="dd-ico photo" src="../assets/stamps-cut/cross.png" alt="" loading="lazy"><span>Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Decorative Cross"><img class="dd-ico photo" src="../assets/stamps-cut/decorative-cross.png" alt="" loading="lazy"><span>Decorative Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Orthodox Cross"><img class="dd-ico photo" src="../assets/stamps-cut/orthodox-cross.png" alt="" loading="lazy"><span>Orthodox Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Ichthys Symbol"><img class="dd-ico photo" src="../assets/stamps-cut/ichthys-symbol.png" alt="" loading="lazy"><span>Ichthys Symbol</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Celtic Knot"><img class="dd-ico photo" src="../assets/stamps-cut/celtic-knot.png" alt="" loading="lazy"><span>Celtic Knot</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fleur-de-lis"><img class="dd-ico photo" src="../assets/stamps-cut/fleur-de-lis.png" alt="" loading="lazy"><span>Fleur-de-lis</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="12 Gauge Shot Gun Shell"><img class="dd-ico photo" src="../assets/stamps-cut/12-gauge-shotgun-shell.png" alt="" loading="lazy"><span>12 Gauge Shot Gun Shell</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Baseball Bats &amp; Balls"><img class="dd-ico photo" src="../assets/stamps-cut/baseball-bats-and-balls.png" alt="" loading="lazy"><span>Baseball Bats &amp; Balls</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Baseball"><img class="dd-ico photo" src="../assets/stamps-cut/baseball.png" alt="" loading="lazy"><span>Baseball</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Soccer Ball"><img class="dd-ico photo" src="../assets/stamps-cut/soccer-ball.png" alt="" loading="lazy"><span>Soccer Ball</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Bulldog"><img class="dd-ico photo" src="../assets/stamps-cut/bulldog.png" alt="" loading="lazy"><span>Bulldog</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Smiley Face"><img class="dd-ico photo" src="../assets/stamps-cut/smiley-face.png" alt="" loading="lazy"><span>Smiley Face</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Radioactive Symbol"><img class="dd-ico photo" src="../assets/stamps-cut/radioactive-symbol.png" alt="" loading="lazy"><span>Radioactive Symbol</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Doughnut"><img class="dd-ico photo" src="../assets/stamps-cut/doughnut.png" alt="" loading="lazy"><span>Doughnut</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="420 Leaf"><img class="dd-ico photo" src="../assets/stamps-cut/420-leaf.png" alt="" loading="lazy"><span>420 Leaf</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Feather"><img class="dd-ico photo" src="../assets/stamps-cut/feather.png" alt="" loading="lazy"><span>Feather</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fighting Irish"><img class="dd-ico photo" src="../assets/stamps-cut/fighting-irish.png" alt="" loading="lazy"><span>Fighting Irish</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="4 Leaf Clover"><img class="dd-ico photo" src="../assets/stamps-cut/4-leaf-clover.png" alt="" loading="lazy"><span>4 Leaf Clover</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Skull and Cross Bones"><img class="dd-ico photo" src="../assets/stamps-cut/skull-and-cross-bones.png" alt="" loading="lazy"><span>Skull and Cross Bones</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Sugar Skull"><img class="dd-ico photo" src="../assets/stamps-cut/sugar-skull.png" alt="" loading="lazy"><span>Sugar Skull</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Lips"><img class="dd-ico photo" src="../assets/stamps-cut/lips.png" alt="" loading="lazy"><span>Lips</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Lady Bug"><img class="dd-ico photo" src="../assets/stamps-cut/lady-bug.png" alt="" loading="lazy"><span>Lady Bug</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle Head"><img class="dd-ico photo" src="../assets/stamps-cut/eagle-head.png" alt="" loading="lazy"><span>Eagle Head</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle"><img class="dd-ico photo" src="../assets/stamps-cut/eagle.png" alt="" loading="lazy"><span>Eagle</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Long Horn"><img class="dd-ico photo" src="../assets/stamps-cut/long-horn.png" alt="" loading="lazy"><span>Long Horn</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Cowboy"><img class="dd-ico photo" src="../assets/stamps-cut/cowboy.png" alt="" loading="lazy"><span>Cowboy</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Wolf"><img class="dd-ico photo" src="../assets/stamps-cut/wolf.png" alt="" loading="lazy"><span>Wolf</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Paw Prints"><img class="dd-ico photo" src="../assets/stamps-cut/paw-prints.png" alt="" loading="lazy"><span>Paw Prints</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Bear"><img class="dd-ico photo" src="../assets/stamps-cut/bear.png" alt="" loading="lazy"><span>Bear</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Rooster"><img class="dd-ico photo" src="../assets/stamps-cut/rooster.png" alt="" loading="lazy"><span>Rooster</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Goose"><img class="dd-ico photo" src="../assets/stamps-cut/goose.png" alt="" loading="lazy"><span>Goose</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Mustache"><img class="dd-ico photo" src="../assets/stamps-cut/mustache.png" alt="" loading="lazy"><span>Mustache</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Spade"><img class="dd-ico photo" src="../assets/stamps-cut/spade.png" alt="" loading="lazy"><span>Spade</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Flower"><img class="dd-ico photo" src="../assets/stamps-cut/flower.png" alt="" loading="lazy"><span>Flower</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Dollar Sign"><img class="dd-ico photo" src="../assets/stamps-cut/dollar-sign.png" alt="" loading="lazy"><span>Dollar Sign</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Question Mark"><img class="dd-ico photo" src="../assets/stamps-cut/question-mark.png" alt="" loading="lazy"><span>Question Mark</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Exclamation Point"><img class="dd-ico photo" src="../assets/stamps-cut/exclamation-point.png" alt="" loading="lazy"><span>Exclamation Point</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Star"><img class="dd-ico photo" src="../assets/stamps-cut/star.png" alt="" loading="lazy"><span>Star</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Music Note"><img class="dd-ico photo" src="../assets/stamps-cut/music-note.png" alt="" loading="lazy"><span>Music Note</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Heart"><img class="dd-ico photo" src="../assets/stamps-cut/heart.png" alt="" loading="lazy"><span>Heart</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Autism Awareness Puzzle Piece"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-puzzle-piece.png" alt="" loading="lazy"><span>Autism Awareness Puzzle Piece</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Autism Awareness Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-ribbon.png" alt="" loading="lazy"><span>Autism Awareness Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Breast Cancer Awareness Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/breast-cancer-awareness.png" alt="" loading="lazy"><span>Breast Cancer Awareness Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Suicide Prevention Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/suicide-prevention.png" alt="" loading="lazy"><span>Suicide Prevention Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Awareness Ribbon (Put Color In Notes)"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-ribbon.png" alt="" loading="lazy"><span>Awareness Ribbon (Put Color In Notes)</span></div>
+        </div>
+      </div>
     </div>
     <div class="opt-block">
       <div class="opt-name">05 — Right Stamp <b>· Required</b> <button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
-      <select class="text-in opt-sel">
-        <option value="">Choose Options</option>
-        <option data-price="0">None</option>
-        <option data-price="0">Fire Department Maltese Cross</option>
-        <option data-price="0">Maltese Cross</option>
-        <option data-price="0">Thin Red Line Maltese Cross</option>
-        <option data-price="0">FD Maltese Cross</option>
-        <option data-price="0">American Flag Maltese Cross</option>
-        <option data-price="0">IAFF Maltese Cross</option>
-        <option data-price="0">NJ FMBA</option>
-        <option data-price="0">343 Maltese Cross</option>
-        <option data-price="0">9/11 Pentagon Maltese Cross</option>
-        <option data-price="0">Maltese/ Star of Life</option>
-        <option data-price="0">Star of Life</option>
-        <option data-price="0">Firefighter</option>
-        <option data-price="0">Scramble Logo</option>
-        <option data-price="0">FD Skull</option>
-        <option data-price="0">Crossing Axes</option>
-        <option data-price="0">The Irons</option>
-        <option data-price="0">Fire Hydrant</option>
-        <option data-price="0">Closed Jaws</option>
-        <option data-price="0">Open Jaws</option>
-        <option data-price="0">Rescue 8</option>
-        <option data-price="0">Torch and Axes</option>
-        <option data-price="0">NFPA 704</option>
-        <option data-price="0">1 Vertical Bugle</option>
-        <option data-price="0">2 Vertical Bugles</option>
-        <option data-price="0">2 Crossed Bugles</option>
-        <option data-price="0">3 Crossed Bugles</option>
-        <option data-price="0">4 Crossed Bugles</option>
-        <option data-price="0">5 Crossed Bugles</option>
-        <option data-price="0">5 Year Badge</option>
-        <option data-price="0">10 Year Badge</option>
-        <option data-price="0">Police Badge</option>
-        <option data-price="0">U.S. Army</option>
-        <option data-price="0">Air Force</option>
-        <option data-price="0">Anchor</option>
-        <option data-price="0">Marine Corps EGA</option>
-        <option data-price="0">Jump Wings</option>
-        <option data-price="0">Combat Infantry</option>
-        <option data-price="0">Live To Ride</option>
-        <option data-price="0">American Flag</option>
-        <option data-price="0">Thin Red Line Flag</option>
-        <option data-price="0">Waving American Flag</option>
-        <option data-price="0">Waving Thin Red Line Flag</option>
-        <option data-price="0">Vertical American Flag</option>
-        <option data-price="0">Vertical Thin Red Line Flag</option>
-        <option data-price="0">American Axe Flag</option>
-        <option data-price="0">Tattered Thin Red Line Flag</option>
-        <option data-price="0">Eagle Thin Red Line Flag</option>
-        <option data-price="0">Punisher Skull Flag</option>
-        <option data-price="0">Punisher Skull Thin Red Line</option>
-        <option data-price="0">Dive Flag</option>
-        <option data-price="0">Canadian Flag</option>
-        <option data-price="0">Texas Flag</option>
-        <option data-price="0">Union Jack Flag</option>
-        <option data-price="0">Puerto Rican Flag</option>
-        <option data-price="0">Mexican Flag</option>
-        <option data-price="0">Guatemalan Flag</option>
-        <option data-price="0">French Flag</option>
-        <option data-price="0">Irish Flag</option>
-        <option data-price="0">Italian Flag</option>
-        <option data-price="0">Hungarian Flag</option>
-        <option data-price="0">Austrian Flag</option>
-        <option data-price="0">German Flag</option>
-        <option data-price="0">Russian Flag</option>
-        <option data-price="0">Norwegian Flag</option>
-        <option data-price="0">South African Flag</option>
-        <option data-price="0">Jamaican Flag</option>
-        <option data-price="0">South Korean Flag</option>
-        <option data-price="0">Japanese Flag</option>
-        <option data-price="0">Ukrainian Flag</option>
-        <option data-price="0">American/ Japanese Flag</option>
-        <option data-price="0">USA</option>
-        <option data-price="0">Cross</option>
-        <option data-price="0">Decorative Cross</option>
-        <option data-price="0">Orthodox Cross</option>
-        <option data-price="0">Ichthys Symbol</option>
-        <option data-price="0">Celtic Knot</option>
-        <option data-price="0">Fleur-de-lis</option>
-        <option data-price="0">12 Gauge Shot Gun Shell</option>
-        <option data-price="0">Baseball Bats &amp; Balls</option>
-        <option data-price="0">Baseball</option>
-        <option data-price="0">Soccer Ball</option>
-        <option data-price="0">Bulldog</option>
-        <option data-price="0">Smiley Face</option>
-        <option data-price="0">Radioactive Symbol</option>
-        <option data-price="0">Doughnut</option>
-        <option data-price="0">420 Leaf</option>
-        <option data-price="0">Feather</option>
-        <option data-price="0">Fighting Irish</option>
-        <option data-price="0">4 Leaf Clover</option>
-        <option data-price="0">Skull and Cross Bones</option>
-        <option data-price="0">Sugar Skull</option>
-        <option data-price="0">Lips</option>
-        <option data-price="0">Lady Bug</option>
-        <option data-price="0">Eagle Head</option>
-        <option data-price="0">Eagle</option>
-        <option data-price="0">Long Horn</option>
-        <option data-price="0">Cowboy</option>
-        <option data-price="0">Wolf</option>
-        <option data-price="0">Paw Prints</option>
-        <option data-price="0">Bear</option>
-        <option data-price="0">Rooster</option>
-        <option data-price="0">Goose</option>
-        <option data-price="0">Mustache</option>
-        <option data-price="0">Spade</option>
-        <option data-price="0">Flower</option>
-        <option data-price="0">Dollar Sign</option>
-        <option data-price="0">Question Mark</option>
-        <option data-price="0">Exclamation Point</option>
-        <option data-price="0">Star</option>
-        <option data-price="0">Music Note</option>
-        <option data-price="0">Heart</option>
-        <option data-price="0">Autism Awareness Puzzle Piece</option>
-        <option data-price="0">Autism Awareness Ribbon</option>
-        <option data-price="0">Breast Cancer Awareness Ribbon</option>
-        <option data-price="0">Suicide Prevention Ribbon</option>
-        <option data-price="0">Awareness Ribbon (Put Color In Notes)</option>
-      </select>
+      <div class="dd">
+        <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"></button>
+        <div class="dd-list" role="listbox">
+          <div class="dd-opt on" data-price="0" role="option" title="None"><span class="dd-ico none"></span><span>None</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fire Department Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/fire-dept-maltese.png" alt="" loading="lazy"><span>Fire Department Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/maltese-cross.png" alt="" loading="lazy"><span>Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Thin Red Line Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/thin-red-line-maltese.png" alt="" loading="lazy"><span>Thin Red Line Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="FD Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/fd-maltese.png" alt="" loading="lazy"><span>FD Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Flag Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/american-flag-maltese.png" alt="" loading="lazy"><span>American Flag Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="IAFF Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/iaff-maltese.png" alt="" loading="lazy"><span>IAFF Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="NJ FMBA"><img class="dd-ico photo" src="../assets/stamps-cut/nj-fmba.png" alt="" loading="lazy"><span>NJ FMBA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="343 Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/343-maltese-cross.png" alt="" loading="lazy"><span>343 Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="9/11 Pentagon Maltese Cross"><img class="dd-ico photo" src="../assets/stamps-cut/9-11-pentagon-maltese.png" alt="" loading="lazy"><span>9/11 Pentagon Maltese Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Maltese/ Star of Life"><img class="dd-ico photo" src="../assets/stamps-cut/maltese-star-of-life.png" alt="" loading="lazy"><span>Maltese/ Star of Life</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Star of Life"><img class="dd-ico photo" src="../assets/stamps-cut/star-of-life.png" alt="" loading="lazy"><span>Star of Life</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Firefighter"><img class="dd-ico photo" src="../assets/stamps-cut/firefighter.png" alt="" loading="lazy"><span>Firefighter</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Scramble Logo"><img class="dd-ico photo" src="../assets/stamps-cut/scramble-logo.png" alt="" loading="lazy"><span>Scramble Logo</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="FD Skull"><img class="dd-ico photo" src="../assets/stamps-cut/fd-skull.png" alt="" loading="lazy"><span>FD Skull</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Crossing Axes"><img class="dd-ico photo" src="../assets/stamps-cut/crossing-axes.png" alt="" loading="lazy"><span>Crossing Axes</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="The Irons"><img class="dd-ico photo" src="../assets/stamps-cut/the-irons.png" alt="" loading="lazy"><span>The Irons</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fire Hydrant"><img class="dd-ico photo" src="../assets/stamps-cut/fire-hydrant.png" alt="" loading="lazy"><span>Fire Hydrant</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Closed Jaws"><img class="dd-ico photo" src="../assets/stamps-cut/closed-jaws.png" alt="" loading="lazy"><span>Closed Jaws</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Open Jaws"><img class="dd-ico photo" src="../assets/stamps-cut/open-jaws.png" alt="" loading="lazy"><span>Open Jaws</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Rescue 8"><img class="dd-ico photo" src="../assets/stamps-cut/rescue-8.png" alt="" loading="lazy"><span>Rescue 8</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Torch and Axes"><img class="dd-ico photo" src="../assets/stamps-cut/torch-and-axes.png" alt="" loading="lazy"><span>Torch and Axes</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="NFPA 704"><img class="dd-ico photo" src="../assets/stamps-cut/nfpa-704.png" alt="" loading="lazy"><span>NFPA 704</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="1 Vertical Bugle"><img class="dd-ico photo" src="../assets/stamps-cut/1-vertical-bugle.png" alt="" loading="lazy"><span>1 Vertical Bugle</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="2 Vertical Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/2-vertical-bugles.png" alt="" loading="lazy"><span>2 Vertical Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="2 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/2-crossed-bugles.png" alt="" loading="lazy"><span>2 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="3 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/3-crossed-bugles.png" alt="" loading="lazy"><span>3 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="4 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/4-crossed-bugles.png" alt="" loading="lazy"><span>4 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="5 Crossed Bugles"><img class="dd-ico photo" src="../assets/stamps-cut/5-crossed-bugles.png" alt="" loading="lazy"><span>5 Crossed Bugles</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="5 Year Badge"><img class="dd-ico photo" src="../assets/stamps-cut/5-year-badge.png" alt="" loading="lazy"><span>5 Year Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="10 Year Badge"><img class="dd-ico photo" src="../assets/stamps-cut/10-year-badge.png" alt="" loading="lazy"><span>10 Year Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Police Badge"><img class="dd-ico photo" src="../assets/stamps-cut/police-badge.png" alt="" loading="lazy"><span>Police Badge</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="U.S. Army"><img class="dd-ico photo" src="../assets/stamps-cut/u-s-army.png" alt="" loading="lazy"><span>U.S. Army</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Air Force"><img class="dd-ico photo" src="../assets/stamps-cut/air-force.png" alt="" loading="lazy"><span>Air Force</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Anchor"><img class="dd-ico photo" src="../assets/stamps-cut/anchor.png" alt="" loading="lazy"><span>Anchor</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Marine Corps EGA"><img class="dd-ico photo" src="../assets/stamps-cut/marine-corps-ega.png" alt="" loading="lazy"><span>Marine Corps EGA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Jump Wings"><img class="dd-ico photo" src="../assets/stamps-cut/jump-wings.png" alt="" loading="lazy"><span>Jump Wings</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Combat Infantry"><img class="dd-ico photo" src="../assets/stamps-cut/combat-infantry.png" alt="" loading="lazy"><span>Combat Infantry</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Live To Ride"><img class="dd-ico photo" src="../assets/stamps-cut/live-to-ride.png" alt="" loading="lazy"><span>Live To Ride</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-flag.png" alt="" loading="lazy"><span>American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/thin-red-line-flag.png" alt="" loading="lazy"><span>Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Waving American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/waving-american-flag.png" alt="" loading="lazy"><span>Waving American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Waving Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/waving-thin-red-line-flag.png" alt="" loading="lazy"><span>Waving Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Vertical American Flag"><img class="dd-ico photo" src="../assets/stamps-cut/vertical-american-flag.png" alt="" loading="lazy"><span>Vertical American Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Vertical Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/vertical-thin-red-line-flag.png" alt="" loading="lazy"><span>Vertical Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American Axe Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-axe-flag.png" alt="" loading="lazy"><span>American Axe Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Tattered Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/tattered-thin-red-line-flag.png" alt="" loading="lazy"><span>Tattered Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle Thin Red Line Flag"><img class="dd-ico photo" src="../assets/stamps-cut/eagle-thin-red-line-flag.png" alt="" loading="lazy"><span>Eagle Thin Red Line Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Punisher Skull Flag"><img class="dd-ico photo" src="../assets/stamps-cut/punisher-skull-flag.png" alt="" loading="lazy"><span>Punisher Skull Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Punisher Skull Thin Red Line"><img class="dd-ico photo" src="../assets/stamps-cut/punisher-skull-thin-red-line.png" alt="" loading="lazy"><span>Punisher Skull Thin Red Line</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Dive Flag"><img class="dd-ico photo" src="../assets/stamps-cut/dive-flag.png" alt="" loading="lazy"><span>Dive Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Canadian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/canadian-flag.png" alt="" loading="lazy"><span>Canadian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Texas Flag"><img class="dd-ico photo" src="../assets/stamps-cut/texas-flag.png" alt="" loading="lazy"><span>Texas Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Union Jack Flag"><img class="dd-ico photo" src="../assets/stamps-cut/union-jack-flag.png" alt="" loading="lazy"><span>Union Jack Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Puerto Rican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/puerto-rican-flag.png" alt="" loading="lazy"><span>Puerto Rican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Mexican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/mexican-flag.png" alt="" loading="lazy"><span>Mexican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Guatemalan Flag"><img class="dd-ico photo" src="../assets/stamps-cut/guatemalan-flag.png" alt="" loading="lazy"><span>Guatemalan Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="French Flag"><img class="dd-ico photo" src="../assets/stamps-cut/french-flag.png" alt="" loading="lazy"><span>French Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Irish Flag"><img class="dd-ico photo" src="../assets/stamps-cut/irish-flag.png" alt="" loading="lazy"><span>Irish Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Italian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/italian-flag.png" alt="" loading="lazy"><span>Italian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Hungarian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/hungarian-flag.png" alt="" loading="lazy"><span>Hungarian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Austrian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/austrian-flag.png" alt="" loading="lazy"><span>Austrian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="German Flag"><img class="dd-ico photo" src="../assets/stamps-cut/german-flag.png" alt="" loading="lazy"><span>German Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Russian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/russian-flag.png" alt="" loading="lazy"><span>Russian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Norwegian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/norwegian-flag.png" alt="" loading="lazy"><span>Norwegian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="South African Flag"><img class="dd-ico photo" src="../assets/stamps-cut/south-african-flag.png" alt="" loading="lazy"><span>South African Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Jamaican Flag"><img class="dd-ico photo" src="../assets/stamps-cut/jamaican-flag.png" alt="" loading="lazy"><span>Jamaican Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="South Korean Flag"><img class="dd-ico photo" src="../assets/stamps-cut/south-korean-flag.png" alt="" loading="lazy"><span>South Korean Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Japanese Flag"><img class="dd-ico photo" src="../assets/stamps-cut/japanese-flag.png" alt="" loading="lazy"><span>Japanese Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Ukrainian Flag"><img class="dd-ico photo" src="../assets/stamps-cut/ukrainian-flag.png" alt="" loading="lazy"><span>Ukrainian Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="American/ Japanese Flag"><img class="dd-ico photo" src="../assets/stamps-cut/american-japanese-flag.png" alt="" loading="lazy"><span>American/ Japanese Flag</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="USA"><img class="dd-ico photo" src="../assets/stamps-cut/usa.png" alt="" loading="lazy"><span>USA</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Cross"><img class="dd-ico photo" src="../assets/stamps-cut/cross.png" alt="" loading="lazy"><span>Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Decorative Cross"><img class="dd-ico photo" src="../assets/stamps-cut/decorative-cross.png" alt="" loading="lazy"><span>Decorative Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Orthodox Cross"><img class="dd-ico photo" src="../assets/stamps-cut/orthodox-cross.png" alt="" loading="lazy"><span>Orthodox Cross</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Ichthys Symbol"><img class="dd-ico photo" src="../assets/stamps-cut/ichthys-symbol.png" alt="" loading="lazy"><span>Ichthys Symbol</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Celtic Knot"><img class="dd-ico photo" src="../assets/stamps-cut/celtic-knot.png" alt="" loading="lazy"><span>Celtic Knot</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fleur-de-lis"><img class="dd-ico photo" src="../assets/stamps-cut/fleur-de-lis.png" alt="" loading="lazy"><span>Fleur-de-lis</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="12 Gauge Shot Gun Shell"><img class="dd-ico photo" src="../assets/stamps-cut/12-gauge-shotgun-shell.png" alt="" loading="lazy"><span>12 Gauge Shot Gun Shell</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Baseball Bats &amp; Balls"><img class="dd-ico photo" src="../assets/stamps-cut/baseball-bats-and-balls.png" alt="" loading="lazy"><span>Baseball Bats &amp; Balls</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Baseball"><img class="dd-ico photo" src="../assets/stamps-cut/baseball.png" alt="" loading="lazy"><span>Baseball</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Soccer Ball"><img class="dd-ico photo" src="../assets/stamps-cut/soccer-ball.png" alt="" loading="lazy"><span>Soccer Ball</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Bulldog"><img class="dd-ico photo" src="../assets/stamps-cut/bulldog.png" alt="" loading="lazy"><span>Bulldog</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Smiley Face"><img class="dd-ico photo" src="../assets/stamps-cut/smiley-face.png" alt="" loading="lazy"><span>Smiley Face</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Radioactive Symbol"><img class="dd-ico photo" src="../assets/stamps-cut/radioactive-symbol.png" alt="" loading="lazy"><span>Radioactive Symbol</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Doughnut"><img class="dd-ico photo" src="../assets/stamps-cut/doughnut.png" alt="" loading="lazy"><span>Doughnut</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="420 Leaf"><img class="dd-ico photo" src="../assets/stamps-cut/420-leaf.png" alt="" loading="lazy"><span>420 Leaf</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Feather"><img class="dd-ico photo" src="../assets/stamps-cut/feather.png" alt="" loading="lazy"><span>Feather</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Fighting Irish"><img class="dd-ico photo" src="../assets/stamps-cut/fighting-irish.png" alt="" loading="lazy"><span>Fighting Irish</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="4 Leaf Clover"><img class="dd-ico photo" src="../assets/stamps-cut/4-leaf-clover.png" alt="" loading="lazy"><span>4 Leaf Clover</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Skull and Cross Bones"><img class="dd-ico photo" src="../assets/stamps-cut/skull-and-cross-bones.png" alt="" loading="lazy"><span>Skull and Cross Bones</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Sugar Skull"><img class="dd-ico photo" src="../assets/stamps-cut/sugar-skull.png" alt="" loading="lazy"><span>Sugar Skull</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Lips"><img class="dd-ico photo" src="../assets/stamps-cut/lips.png" alt="" loading="lazy"><span>Lips</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Lady Bug"><img class="dd-ico photo" src="../assets/stamps-cut/lady-bug.png" alt="" loading="lazy"><span>Lady Bug</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle Head"><img class="dd-ico photo" src="../assets/stamps-cut/eagle-head.png" alt="" loading="lazy"><span>Eagle Head</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Eagle"><img class="dd-ico photo" src="../assets/stamps-cut/eagle.png" alt="" loading="lazy"><span>Eagle</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Long Horn"><img class="dd-ico photo" src="../assets/stamps-cut/long-horn.png" alt="" loading="lazy"><span>Long Horn</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Cowboy"><img class="dd-ico photo" src="../assets/stamps-cut/cowboy.png" alt="" loading="lazy"><span>Cowboy</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Wolf"><img class="dd-ico photo" src="../assets/stamps-cut/wolf.png" alt="" loading="lazy"><span>Wolf</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Paw Prints"><img class="dd-ico photo" src="../assets/stamps-cut/paw-prints.png" alt="" loading="lazy"><span>Paw Prints</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Bear"><img class="dd-ico photo" src="../assets/stamps-cut/bear.png" alt="" loading="lazy"><span>Bear</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Rooster"><img class="dd-ico photo" src="../assets/stamps-cut/rooster.png" alt="" loading="lazy"><span>Rooster</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Goose"><img class="dd-ico photo" src="../assets/stamps-cut/goose.png" alt="" loading="lazy"><span>Goose</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Mustache"><img class="dd-ico photo" src="../assets/stamps-cut/mustache.png" alt="" loading="lazy"><span>Mustache</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Spade"><img class="dd-ico photo" src="../assets/stamps-cut/spade.png" alt="" loading="lazy"><span>Spade</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Flower"><img class="dd-ico photo" src="../assets/stamps-cut/flower.png" alt="" loading="lazy"><span>Flower</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Dollar Sign"><img class="dd-ico photo" src="../assets/stamps-cut/dollar-sign.png" alt="" loading="lazy"><span>Dollar Sign</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Question Mark"><img class="dd-ico photo" src="../assets/stamps-cut/question-mark.png" alt="" loading="lazy"><span>Question Mark</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Exclamation Point"><img class="dd-ico photo" src="../assets/stamps-cut/exclamation-point.png" alt="" loading="lazy"><span>Exclamation Point</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Star"><img class="dd-ico photo" src="../assets/stamps-cut/star.png" alt="" loading="lazy"><span>Star</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Music Note"><img class="dd-ico photo" src="../assets/stamps-cut/music-note.png" alt="" loading="lazy"><span>Music Note</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Heart"><img class="dd-ico photo" src="../assets/stamps-cut/heart.png" alt="" loading="lazy"><span>Heart</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Autism Awareness Puzzle Piece"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-puzzle-piece.png" alt="" loading="lazy"><span>Autism Awareness Puzzle Piece</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Autism Awareness Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-ribbon.png" alt="" loading="lazy"><span>Autism Awareness Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Breast Cancer Awareness Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/breast-cancer-awareness.png" alt="" loading="lazy"><span>Breast Cancer Awareness Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Suicide Prevention Ribbon"><img class="dd-ico photo" src="../assets/stamps-cut/suicide-prevention.png" alt="" loading="lazy"><span>Suicide Prevention Ribbon</span></div>
+          <div class="dd-opt" data-price="0" role="option" title="Awareness Ribbon (Put Color In Notes)"><img class="dd-ico photo" src="../assets/stamps-cut/autism-awareness-ribbon.png" alt="" loading="lazy"><span>Awareness Ribbon (Put Color In Notes)</span></div>
+        </div>
+      </div>
     </div>
     <div class="opt-block">
       <div class="opt-name">06 — Personalization</div>
@@ -645,7 +670,7 @@
   const BASE = 47.99;
   function total(){
     let t = BASE;
-    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price]').forEach(c => t += +c.dataset.price);
+    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price], .dd-opt.on[data-price]').forEach(c => t += +c.dataset.price);
     document.querySelectorAll('select.opt-sel').forEach(s => {
       const o = s.selectedOptions[0];
       if (o && o.dataset.price) t += +o.dataset.price;
@@ -664,6 +689,35 @@
   document.querySelectorAll('.pdp-form .chip[data-toggle]').forEach(ch =>
     ch.addEventListener('click', () => { ch.classList.toggle('on'); total(); }));
   document.querySelectorAll('select.opt-sel').forEach(s => s.addEventListener('change', total));
+  // stamp thumbnail dropdowns
+  document.querySelectorAll('.pdp-form .dd').forEach(dd => {
+    const btn = dd.querySelector('.dd-btn'), menu = dd.querySelector('.dd-list');
+    function refresh(){
+      const on = menu.querySelector('.dd-opt.on');
+      btn.innerHTML = on ? on.innerHTML : 'Choose Options';
+    }
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = dd.classList.contains('open');
+      document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open'));
+      btn.setAttribute('aria-expanded', String(!open));
+      if (!open) {
+        dd.classList.add('open');
+        const sel = menu.querySelector('.dd-opt.on');
+        if (sel) sel.scrollIntoView({block:'nearest'});
+      }
+    });
+    menu.querySelectorAll('.dd-opt').forEach(o => o.addEventListener('click', e => {
+      e.stopPropagation();
+      menu.querySelectorAll('.dd-opt').forEach(x => x.classList.remove('on'));
+      o.classList.add('on');
+      dd.classList.remove('open');
+      refresh(); total();
+    }));
+    refresh();
+  });
+  document.addEventListener('click', () =>
+    document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
@@ -693,7 +747,7 @@
     total=function(){
       baseTotal();
       const picks=[];
-      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price]')
+      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price], .pdp-form .dd-opt.on[data-price]')
         .forEach(c=>{ if(+c.dataset.price>0) picks.push(c.textContent.trim()); });
       document.querySelectorAll('select.opt-sel').forEach(s=>{
         const o=s.selectedOptions[0];
