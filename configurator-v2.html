@@ -1020,7 +1020,7 @@ const DIMS = ['', 'Standard — H 7.5" × W 2.75" × D 1.8"', 'Extended Battery 
 const HW   = [O('Nickel','#b9bdc4'), O('Black','#26262a'), O('Solid Brass','#a8853c',10)];
 const YESNO10 = [O('No'), O('Yes',null,10)];
 // photo stamps: cropped from the four stamp chart photographs
-const S=(n,f)=>({n,c:null,a:0,fx:null,s:n,img:'assets/stamps/'+f+'.jpg?v=3'});
+const S=(n,f)=>({n,c:null,a:0,fx:null,s:n,img:'assets/stamps/'+f+'.jpg?v=3',cut:'assets/stamps-cut/'+f+'.png'});
 const STAMPS = [
   O('None',null),
   S('Maltese Cross','maltese-cross'),
@@ -1324,12 +1324,12 @@ function render(){
   if(!rig && state.view!=='belt') state.view='all';
   $('holsterDims').textContent = DIMS[state.holster];
 
-  // stamps — photo stamps sit on the strap with a feathered edge so the
-  // tile's own leather background melts into whatever leather is picked
+  // stamps — background-removed cutouts sit straight on the leather, rotated
+  // to read along the strap like the real stamped straps
   [['stampL',state.ls],['stampR',state.rs]].forEach(pair=>{
     const it=STAMPS[pair[1]];
-    $(pair[0]).innerHTML = it.img
-      ? '<g mask="url(#stampFade)"><image href="'+it.img+'" x="-102" y="-100" width="204" height="200" preserveAspectRatio="xMidYMid meet" transform="rotate(-90)"/></g>'
+    $(pair[0]).innerHTML = it.cut
+      ? '<image href="'+it.cut+'" x="-102" y="-100" width="204" height="200" preserveAspectRatio="xMidYMid meet" transform="rotate(-90)"/>'
       : (it.c?'<use href="#'+it.c+'"/>':'');
   });
 
