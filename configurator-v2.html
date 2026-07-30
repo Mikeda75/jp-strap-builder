@@ -360,7 +360,7 @@
   <!-- soft-edged mask for the photo stamps: the crop's own leather background
        feathers out instead of ending in a hard square on the strap -->
   <filter id="stampBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
-  <mask id="stampFade"><rect x="-50" y="-38" width="100" height="76" fill="#fff" filter="url(#stampBlur)"/></mask>
+  <mask id="stampFade"><rect x="-78" y="-64" width="156" height="128" fill="#fff" filter="url(#stampBlur)"/></mask>
 
   <!-- ---------- stamp artwork (drawn in a ±50 box) ---------- -->
   <g id="ph-maltese">
@@ -1329,7 +1329,7 @@ function render(){
   [['stampL',state.ls],['stampR',state.rs]].forEach(pair=>{
     const it=STAMPS[pair[1]];
     $(pair[0]).innerHTML = it.img
-      ? '<image href="'+it.img+'" x="-62" y="-50" width="124" height="100" preserveAspectRatio="xMidYMid meet" mask="url(#stampFade)"/>'
+      ? '<g mask="url(#stampFade)"><image href="'+it.img+'" x="-75" y="-85" width="150" height="170" preserveAspectRatio="xMidYMid meet" transform="rotate(-90)"/></g>'
       : (it.c?'<use href="#'+it.c+'"/>':'');
   });
 
