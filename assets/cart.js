@@ -77,6 +77,9 @@
     ".jpc-t{font-weight:600;font-size:.9rem;line-height:1.3}" +
     ".jpc-attrs{margin-top:4px;font-size:.72rem;color:#9b9b9b;line-height:1.5}" +
     ".jpc-attrs span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+    ".jpc-subs{margin-top:6px;border-left:2px solid rgba(247,184,41,.4);padding-left:8px}" +
+    ".jpc-sub-line{display:flex;justify-content:space-between;gap:8px;font-size:.75rem;color:#c9c9c9;line-height:1.6}" +
+    ".jpc-sub-p{color:#f7b829;flex:none}" +
     ".jpc-right{text-align:right;flex:none}" +
     ".jpc-p{color:#f7b829;font-weight:700;font-size:.9rem}" +
     ".jpc-rm{background:none;border:0;color:#9b9b9b;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:8px;padding:0}" +
@@ -135,27 +138,63 @@
     }
     go.removeAttribute("aria-disabled");
     go.href = cart.checkoutUrl;
-    body.innerHTML = lines.map(function (l) {
+
+    // Add-on lines (attribute "For: <parent product title>") fold under
+    // their parent visually. Shopify still sees separate lines — checkout
+    // shows them separately, which is also what Joe's order screen charges.
+    var mains = [], extras = {};
+    lines.forEach(function (l) {
+      var parent = null;
+      l.attributes.forEach(function (a) {
+        if (a.key === "For") parent = a.value;
+      });
+      if (parent !== null) (extras[parent] = extras[parent] || []).push(l);
+      else mains.push(l);
+    });
+
+    function lineHtml(l, addons) {
       var m = l.merchandise;
       var img = m.product.featuredImage
         ? '<img class="jpc-img" src="' + m.product.featuredImage.url + '" alt="">'
         : '<div class="jpc-noimg"></div>';
       var title = m.product.title +
         (m.title && m.title !== "Default Title" ? " — " + m.title : "");
+      var total = parseFloat(l.cost.totalAmount.amount);
+      addons.forEach(function (a) {
+        total += parseFloat(a.cost.totalAmount.amount);
+      });
+      var subs = addons.map(function (a) {
+        return '<div class="jpc-sub-line"><span>' + esc(a.merchandise.title) +
+          '</span><span class="jpc-sub-p">+' +
+          money(a.cost.totalAmount.amount) + "</span></div>";
+      }).join("");
       var attrs = l.attributes.map(function (a) {
         return "<span>" + esc(a.key) + ": " + esc(a.value) + "</span>";
       }).join("");
+      var ids = [l.id].concat(addons.map(function (a) { return a.id; }));
       return '<div class="jpc-line">' + img +
         '<div class="jpc-mid"><div class="jpc-t">' + esc(title) + "</div>" +
+        (subs ? '<div class="jpc-subs">' + subs + "</div>" : "") +
         (attrs ? '<div class="jpc-attrs">' + attrs + "</div>" : "") + "</div>" +
-        '<div class="jpc-right"><div class="jpc-p">' +
-        money(l.cost.totalAmount.amount) + "</div>" +
-        '<button class="jpc-rm" data-line="' + l.id + '">Remove</button>' +
+        '<div class="jpc-right"><div class="jpc-p">' + money(total) + "</div>" +
+        '<button class="jpc-rm" data-lines="' + ids.join(",") + '">Remove</button>' +
         "</div></div>";
+    }
+
+    var out = mains.map(function (l) {
+      var addons = extras[l.merchandise.product.title] || [];
+      delete extras[l.merchandise.product.title];
+      return lineHtml(l, addons);
     }).join("");
+    // orphaned add-ons (parent line already removed) render standalone
+    Object.keys(extras).forEach(function (k) {
+      extras[k].forEach(function (l) { out += lineHtml(l, []); });
+    });
+    body.innerHTML = out;
+
     body.querySelectorAll(".jpc-rm").forEach(function (b) {
       b.addEventListener("click", function () {
-        mutate(M_REMOVE, { id: cart.id, lineIds: [b.dataset.line] },
+        mutate(M_REMOVE, { id: cart.id, lineIds: b.dataset.lines.split(",") },
                "cartLinesRemove");
       });
     });
