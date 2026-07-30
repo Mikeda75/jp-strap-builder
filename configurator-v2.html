@@ -113,7 +113,7 @@
 
   /* stamp pickers: a select can't draw artwork in its options, so this is a
      listbox that shows each emblem next to its name. Built to scroll, because
-     the live listing has 116 of them. */
+     the live listing has 117 of them. */
   .stamp-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .dd{position:relative}
   .dd-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--char);
@@ -131,9 +131,14 @@
     cursor:pointer;font-size:13px;line-height:1.3}
   .dd-opt:hover{background:rgba(247,184,41,.16)}
   .dd-opt.on{background:rgba(247,184,41,.26)}
-  .dd-ico{width:26px;height:26px;flex:none;border-radius:5px;background:#efe9dd;padding:2px;
+  .dd-ico{width:34px;height:34px;flex:none;border-radius:5px;background:#efe9dd;padding:2px;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
   .dd-ico.none{background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)}
+  .dd-ico.photo{object-fit:contain;background:#26262a;padding:0}
+  .dd-find{position:sticky;top:0;z-index:1;display:block;width:100%;box-sizing:border-box;
+    background:#2e2e2e;border:1px solid rgba(255,255,255,.25);border-radius:6px;color:#fff;
+    padding:7px 9px;font-family:Jost,system-ui,sans-serif;font-size:13px;margin-bottom:4px}
+  .dd-find:focus{outline:none;border-color:var(--gold)}
 
   /* splatter paint: an extra pass over the leather, off unless the chosen
      leather is one of the five splatter finishes */
@@ -355,6 +360,11 @@
     <circle r="10" fill="url(#domeG)"/>
     <circle cx="-3" cy="-3.4" r="3.1" fill="#fff" opacity=".28"/>
   </g>
+
+  <!-- soft-edged mask for the photo stamps: the crop's own leather background
+       feathers out instead of ending in a hard square on the strap -->
+  <filter id="stampBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+  <mask id="stampFade"><rect x="-50" y="-38" width="100" height="76" fill="#fff" filter="url(#stampBlur)"/></mask>
 
   <!-- ---------- stamp artwork (drawn in a ±50 box) ---------- -->
   <g id="ph-maltese">
@@ -721,7 +731,7 @@
 
         <div class="cg">
           <div class="cg-h"><span class="num">04</span><h3>Stamps</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
-          <p class="cg-note">Top and bottom slots — choose from <b>116 hand-painted designs</b> per slot.</p>
+          <p class="cg-note">Top and bottom slots — choose from <b>117 hand-painted designs</b> per slot.</p>
           <div class="stamp-cols">
             <div>
               <p class="cg-note" style="margin-bottom:8px">Top stamp</p>
@@ -1013,16 +1023,134 @@ const DIMS = ['', 'Standard — H 7.5" × W 2.75" × D 1.8"', 'Extended Battery 
   'Trauma, wide extended battery — H 9" × W 3.125" × D 2.125"'];
 const HW   = [O('Nickel','#b9bdc4'), O('Black','#26262a'), O('Solid Brass','#a8853c',10)];
 const YESNO10 = [O('No'), O('Yes',null,10)];
+// photo stamps: cropped from the four stamp chart photographs
+const S=(n,f)=>({n,c:null,a:0,fx:null,s:n,img:'assets/stamps/'+f+'.jpg'});
 const STAMPS = [
-  O('None',null), O('Maltese Cross','ph-maltese'), O('Flag Roundel','ph-flag'),
-  O('Star of Life','ph-life'), O('Shield','ph-shield'), O('Bugle','ph-bugle'),
+  O('None',null),
+  S('Maltese Cross','maltese-cross'),
+  S('Thin Red Line Maltese','thin-red-line-maltese'),
+  S('FD Maltese','fd-maltese'),
+  S('Fire Dept. Maltese','fire-dept-maltese'),
+  S('American Flag Maltese','american-flag-maltese'),
+  S('IAFF Maltese','iaff-maltese'),
+  S('NJ FMBA','nj-fmba'),
+  S('343 Maltese Cross','343-maltese-cross'),
+  S('9/11 Pentagon Maltese','9-11-pentagon-maltese'),
+  S('Maltese/Star Of Life','maltese-star-of-life'),
+  S('Star Of Life','star-of-life'),
+  S('Firefighter','firefighter'),
+  S('Scramble Logo','scramble-logo'),
+  S('FD Skull','fd-skull'),
+  S('Crossing Axes','crossing-axes'),
+  S('The Irons','the-irons'),
+  S('Fire Hydrant','fire-hydrant'),
+  S('Closed Jaws','closed-jaws'),
+  S('Open Jaws','open-jaws'),
+  S('Rescue 8','rescue-8'),
+  S('Torch And Axes','torch-and-axes'),
+  S('NFPA 704','nfpa-704'),
+  S('1 Vertical Bugle','1-vertical-bugle'),
+  S('2 Vertical Bugles','2-vertical-bugles'),
+  S('2 Crossed Bugles','2-crossed-bugles'),
+  S('3 Crossed Bugles','3-crossed-bugles'),
+  S('4 Crossed Bugles','4-crossed-bugles'),
+  S('5 Crossed Bugles','5-crossed-bugles'),
+  S('5 Year Badge','5-year-badge'),
+  S('10 Year Badge','10-year-badge'),
+  S('Police Badge','police-badge'),
+  S('U.S. Army','u-s-army'),
+  S('Air Force','air-force'),
+  S('Anchor','anchor'),
+  S('Marine Corps EGA','marine-corps-ega'),
+  S('Jump Wings','jump-wings'),
+  S('Combat Infantry','combat-infantry'),
+  S('Live To Ride','live-to-ride'),
+  S('American Flag','american-flag'),
+  S('Thin Red Line Flag','thin-red-line-flag'),
+  S('Waving American Flag','waving-american-flag'),
+  S('Waving Thin Red Line Flag','waving-thin-red-line-flag'),
+  S('Vertical American Flag','vertical-american-flag'),
+  S('Vertical Thin Red Line Flag','vertical-thin-red-line-flag'),
+  S('American Axe Flag','american-axe-flag'),
+  S('Tattered Thin Red Line Flag','tattered-thin-red-line-flag'),
+  S('Eagle Thin Red Line Flag','eagle-thin-red-line-flag'),
+  S('Punisher Skull Flag','punisher-skull-flag'),
+  S('Punisher Skull Thin Red Line','punisher-skull-thin-red-line'),
+  S('Dive Flag','dive-flag'),
+  S('Canadian Flag','canadian-flag'),
+  S('Texas Flag','texas-flag'),
+  S('Union Jack Flag','union-jack-flag'),
+  S('Puerto Rican Flag','puerto-rican-flag'),
+  S('Mexican Flag','mexican-flag'),
+  S('Guatemalan Flag','guatemalan-flag'),
+  S('French Flag','french-flag'),
+  S('Irish Flag','irish-flag'),
+  S('Italian Flag','italian-flag'),
+  S('Hungarian Flag','hungarian-flag'),
+  S('Austrian Flag','austrian-flag'),
+  S('German Flag','german-flag'),
+  S('Russian Flag','russian-flag'),
+  S('Norwegian Flag','norwegian-flag'),
+  S('South African Flag','south-african-flag'),
+  S('Jamaican Flag','jamaican-flag'),
+  S('South Korean Flag','south-korean-flag'),
+  S('Japanese Flag','japanese-flag'),
+  S('Ukrainian Flag','ukrainian-flag'),
+  S('American/Japanese Flag','american-japanese-flag'),
+  S('USA','usa'),
+  S('Cross','cross'),
+  S('Decorative Cross','decorative-cross'),
+  S('Orthodox Cross','orthodox-cross'),
+  S('Ichthys Symbol','ichthys-symbol'),
+  S('Celtic Knot','celtic-knot'),
+  S('Fleur-de-lis','fleur-de-lis'),
+  S('12 Gauge Shotgun Shell','12-gauge-shotgun-shell'),
+  S('Baseball Bats & Balls','baseball-bats-and-balls'),
+  S('Baseball','baseball'),
+  S('Soccer Ball','soccer-ball'),
+  S('Bulldog','bulldog'),
+  S('Smiley Face','smiley-face'),
+  S('Radioactive Symbol','radioactive-symbol'),
+  S('Doughnut','doughnut'),
+  S('420 Leaf','420-leaf'),
+  S('Feather','feather'),
+  S('Fighting Irish','fighting-irish'),
+  S('4 Leaf Clover','4-leaf-clover'),
+  S('Skull And Cross Bones','skull-and-cross-bones'),
+  S('Sugar Skull','sugar-skull'),
+  S('Lips','lips'),
+  S('Lady Bug','lady-bug'),
+  S('Eagle Head','eagle-head'),
+  S('Eagle','eagle'),
+  S('Long Horn','long-horn'),
+  S('Cowboy','cowboy'),
+  S('Wolf','wolf'),
+  S('Paw Prints','paw-prints'),
+  S('Bear','bear'),
+  S('Rooster','rooster'),
+  S('Goose','goose'),
+  S('Mustache','mustache'),
+  S('Spade','spade'),
+  S('Flower','flower'),
+  S('Dollar Sign','dollar-sign'),
+  S('Question Mark','question-mark'),
+  S('Exclamation Point','exclamation-point'),
+  S('Star','star'),
+  S('Music Note','music-note'),
+  S('Heart','heart'),
+  S('Autism Awareness Puzzle Piece','autism-awareness-puzzle-piece'),
+  S('Autism Awareness Ribbon','autism-awareness-ribbon'),
+  S('Bone Cancer Awareness','bone-cancer-awareness'),
+  S('Leukemia Awareness','leukemia-awareness'),
+  S('Breast Cancer Awareness','breast-cancer-awareness'),
+  S('Suicide Prevention','suicide-prevention'),
 ];
 
 // ---------------- state (defaults = the photographed rig) ----------------
 // defaults by name, not index - the lists are the live listing's and reorder with it
 const ix=(list,n)=>list.findIndex(o=>o.n===n);
 const state = {leather:ix(LEATHER,'Brown'), length:1, stitch:ix(STITCH,'Black'), ds:1,
-               ls:1, rs:2, rear:'JPETITO', paint:ix(PAINT,'Black'), outline:ix(OUTLINE,'Gold'),
+               ls:ix(STAMPS,'Maltese Cross'), rs:ix(STAMPS,'American Flag'), rear:'JPETITO', paint:ix(PAINT,'Black'), outline:ix(OUTLINE,'Gold'),
                holster:1, hw:ix(HW,'Black'), pen:0, cord:0, notes:'', view:'all'};
 const art = document.getElementById('art');
 const $ = id => document.getElementById(id);
@@ -1106,9 +1234,10 @@ function dropdown(list, mount, key){
   });
   el.addEventListener('change',()=>{ state[key]=+el.value; render(); });
 }
-function stampIcon(k){
-  return k ? '<svg class="dd-ico" viewBox="-58 -58 116 116" aria-hidden="true"><use href="#'+k+'"/></svg>'
-           : '<span class="dd-ico none"></span>';
+function stampIcon(it){
+  if(it.img) return '<img class="dd-ico photo" src="'+it.img+'" alt="" loading="lazy">';
+  return it.c ? '<svg class="dd-ico" viewBox="-58 -58 116 116" aria-hidden="true"><use href="#'+it.c+'"/></svg>'
+              : '<span class="dd-ico none"></span>';
 }
 function closeStampMenus(){
   document.querySelectorAll('.dd.open').forEach(d=>{
@@ -1119,12 +1248,20 @@ function closeStampMenus(){
 function stampPicker(list, mount, key){
   const el=$(mount);
   el.innerHTML='<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"></button>'
-             + '<div class="dd-list" role="listbox"></div>';
-  const btn=el.querySelector('.dd-btn'), menu=el.querySelector('.dd-list');
+             + '<div class="dd-list" role="listbox"><input class="dd-find" type="text" placeholder="Type to filter&hellip;" aria-label="Filter stamps"></div>';
+  const btn=el.querySelector('.dd-btn'), menu=el.querySelector('.dd-list'),
+        find=el.querySelector('.dd-find');
+  find.addEventListener('click',e=>e.stopPropagation());
+  find.addEventListener('input',()=>{
+    const q=find.value.trim().toLowerCase();
+    menu.querySelectorAll('.dd-opt').forEach(o=>{
+      o.style.display=list[+o.dataset.i].n.toLowerCase().includes(q)?'':'none';
+    });
+  });
   list.forEach((it,i)=>{
     const o=document.createElement('div');
     o.className='dd-opt'; o.dataset.i=i; o.setAttribute('role','option');
-    o.innerHTML=stampIcon(it.c)+'<span>'+it.n+'</span>';
+    o.innerHTML=stampIcon(it)+'<span>'+it.n+'</span>';
     o.addEventListener('click',e=>{ e.stopPropagation(); state[key]=i; closeStampMenus(); render(); });
     menu.appendChild(o);
   });
@@ -1133,11 +1270,13 @@ function stampPicker(list, mount, key){
     const open=el.classList.contains('open');
     closeStampMenus();
     if(!open){ el.classList.add('open'); btn.setAttribute('aria-expanded','true');
-      const sel=menu.querySelector('.dd-opt.on'); if(sel) sel.scrollIntoView({block:'nearest'}); }
+      find.value=''; menu.querySelectorAll('.dd-opt').forEach(o=>o.style.display='');
+      const sel=menu.querySelector('.dd-opt.on'); if(sel) sel.scrollIntoView({block:'nearest'});
+      find.focus(); }
   });
   el.refresh=()=>{
     const it=list[state[key]];
-    btn.innerHTML=stampIcon(it.c)+'<span>'+it.n+'</span>';
+    btn.innerHTML=stampIcon(it)+'<span>'+it.n+'</span>';
     menu.querySelectorAll('.dd-opt').forEach(o=>o.classList.toggle('on',+o.dataset.i===state[key]));
   };
 }
@@ -1199,9 +1338,13 @@ function render(){
   if(!rig && state.view!=='belt') state.view='all';
   $('holsterDims').textContent = DIMS[state.holster];
 
-  // stamps
+  // stamps — photo stamps sit on the strap with a feathered edge so the
+  // tile's own leather background melts into whatever leather is picked
   [['stampL',state.ls],['stampR',state.rs]].forEach(pair=>{
-    const k=STAMPS[pair[1]].c; $(pair[0]).innerHTML = k?'<use href="#'+k+'"/>':'';
+    const it=STAMPS[pair[1]];
+    $(pair[0]).innerHTML = it.img
+      ? '<image href="'+it.img+'" x="-62" y="-50" width="124" height="100" preserveAspectRatio="xMidYMid meet" mask="url(#stampFade)"/>'
+      : (it.c?'<use href="#'+it.c+'"/>':'');
   });
 
   // rear text — shrink to fit the gap between the two stamp slots
