@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leather Conditioner — JP Custom Leatherworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<div class="announce">Lifetime Guarantee On All Gear &nbsp;·&nbsp; Free Standard Shipping On All Orders &nbsp;·&nbsp; Handmade In Whiting, NJ</div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="../index.html">
+      <img src="../assets/jp-logo.png" alt="JP Custom Leatherworks bulldog logo">
+      <span class="logo-word">
+        <span class="bevan">JP Custom</span>
+        <span>Leatherworks</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a href="../shop.html" class="on">Our Products</a>
+      <a href="../configurator-v2.html" class="hot">Custom Radio Strap</a>
+      <a href="../about.html">About Us</a>
+      <a href="../bulk-orders.html">Bulk Orders</a>
+      <a href="../contact.html">Contact</a>
+    </nav>
+    <div class="nav-icons">
+      <a href="#">Search</a>
+      <a href="#" class="cart-pill">Cart · 0</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .guide-btn{background:transparent;border:1px solid rgba(247,184,41,.55);color:#f7b829;
+    font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;border-radius:200px;padding:2px 9px;cursor:pointer;margin-left:10px}
+  .guide-btn:hover{background:rgba(247,184,41,.16)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;
+    justify-content:center;z-index:60;padding:20px}
+  .modal[hidden]{display:none}
+  .modal-card{background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:14px;
+    max-width:820px;width:100%;max-height:88vh;overflow:auto;padding:26px 28px;position:relative;color:#fff}
+  .modal-card h2{font-family:'Bevan',serif;color:#f7b829;font-size:1.15rem;margin:0 40px 8px 0}
+  .modal-card h3{font-family:'Jost',sans-serif;text-transform:uppercase;letter-spacing:.14em;
+    font-size:.8rem;color:#f7b829;margin:20px 0 8px}
+  .modal-note{font-size:.82rem;color:#b9b9b9;margin:0 0 14px;line-height:1.6}
+  .modal-x{position:absolute;top:14px;right:16px;background:none;border:0;color:#fff;
+    font-size:1.5rem;cursor:pointer;line-height:1}
+  .swatch-photo{width:100%;border-radius:10px;display:block;margin-bottom:14px}
+  .about-block{border-top:1px solid rgba(255,255,255,.12);margin-top:60px;padding-top:44px;max-width:840px}
+  .about-body p{font-size:.92rem;line-height:1.75;color:#cfcfcf;margin:0 0 13px}
+  .about-body strong,.about-body b{color:#fff}
+  .about-body a{color:#f7b829}
+
+  .fs-stage{background:#151515;border:1px solid rgba(255,255,255,.14);border-radius:14px;position:relative;overflow:hidden}
+  .fs-stage img#galMain{display:block;width:100%;height:auto;object-fit:contain;max-height:70vh}
+  .fs-stage.live #galMain{display:none}
+  #art{display:block;width:100%;height:auto}
+  .fs-stage svg{max-height:70vh}
+  .fs-thumbs{display:grid;gap:6px;margin-top:10px}
+  .fs-thumbs .gt{aspect-ratio:1;width:100%;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
+  .fs-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
+  .fs-thumbs .gt.on{border-color:#f7b829;opacity:1}
+  .fs-thumbs .gt:hover{opacity:1}
+  .st-arrow{position:absolute;top:50%;transform:translateY(-50%);left:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(21,21,21,.65);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 0 3px}
+  .st-arrow.next{left:auto;right:10px}
+  .st-arrow:hover{background:#f7b829;color:#1c1500;border-color:#f7b829}
+  .fs-stage.live .st-arrow{display:none}
+  .fs-price{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding:12px 16px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:12px}
+  .fs-price-eyebrow{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#9b9b9b}
+  .fs-price .amt{font-family:'Bevan',serif;font-size:1.55rem;color:#f7b829}
+  .fs-price .brk{font-size:.74rem;color:#9b9b9b;text-align:right;line-height:1.5;max-width:46%}
+  .mini{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:#151515;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:5px 9px 5px 5px;cursor:pointer}
+  .mini-slot{width:46px;height:46px;border-radius:7px;overflow:hidden;background:#1c1c1c;display:block}
+  .mini-slot svg{max-height:46px}
+  .mini-slot img{width:100%;height:100%;object-fit:cover;display:none}
+  .mini-cta{font-family:'Jost',sans-serif;font-weight:700;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#f7b829;text-align:left;line-height:1.35}
+  .mini:hover{border-color:#f7b829}
+  @keyframes buildPing{0%{box-shadow:0 0 0 0 rgba(247,184,41,.85)}100%{box-shadow:0 0 0 14px rgba(247,184,41,0)}}
+  .ping{animation:buildPing .7s ease-out}
+  @media (max-width:960px){.fs-stage svg,.fs-stage img#galMain{max-height:56vh}}
+
+</style>
+<div class="pdp">
+  <div class="wrap">
+    <div class="crumbs" style="margin-bottom:34px"><a href="../index.html">Home</a><span class="sep">★</span><a href="../shop.html">Shop All</a><span class="sep">★</span>Leather Conditioner</div>
+    <div class="pdp-grid">
+
+      <div class="pdp-gallery">
+        <div class="fs-stage" id="stage">
+          <img id="galMain" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/143/545/47691214-5AA4-48C2-96B7-F0C5E802C282__91910.1603406732.jpg" alt="Leather Conditioner">
+
+        </div>
+        <div class="fs-thumbs" id="galThumbs" hidden>          <button type="button" class="gt on" data-src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/143/545/47691214-5AA4-48C2-96B7-F0C5E802C282__91910.1603406732.jpg"><img loading="lazy" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/143/545/47691214-5AA4-48C2-96B7-F0C5E802C282__91910.1603406732.jpg" alt="Leather Conditioner photo 1"></button></div>
+        <div class="fs-price">
+          <div><span class="fs-price-eyebrow">Your build</span><br><span class="amt" id="price">$9.99</span></div>
+          <div class="brk" id="priceBrk">Base $9.99</div>
+        </div>
+      </div>
+
+      <div class="pdp-info">
+        <span class="eyebrow">From The Bench</span>
+        <h1 class="bevan" style="margin-top:10px">Leather Conditioner</h1>
+
+        <div class="pdp-rating"><span class="stars">★★★★★</span>Handmade to order in Whiting, NJ</div>
+        
+        <p class="pdp-desc">We get asked all the time &quot;What products do you recommend to maintain your leather goods?&quot; Well we have simplified it for you. Conditioner will not…</p>
+
+        <div class="pdp-cta">
+          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$9.99</span></a>
+        </div>
+        <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
+      </div>
+    </div>
+
+    <div class="about-block">
+      <span class="eyebrow">From The Listing</span>
+      <h2 class="bevan" style="font-size:clamp(20px,2.2vw,28px)">About The Leather Conditioner</h2>
+      <div class="about-body"><p><span>We get asked all the time "What products do you recommend to maintain your leather goods?"  Well we have simplified it for you. Conditioner will not only keep your leather from drying out but also acts as a great waterproofing agent. Conditioner can be applied with a standard cotton cloth. <br/><br/></span></p>
+<p><span>Just like all of our other products, it is made from scratch in-house. Conditioner is made with all natural ingredients, main ingredient being beeswax</span></p>
+<p> </p>
+<p><font color="#FFFF00" size="4"><b>!!CAUTION!!</b></font></p>
+<p><font color="#FFFF00" size="4"><b>MADE WITH ALMOND OIL</b></font></p>
+<p> </p>
+<p> </p></div>
+      <div class="pdp-details"><h3>Details</h3><table class="size-table">
+          <tr><th>SKU</th><td>0130</td></tr>
+        </table></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:70px"><div>
+      <span class="eyebrow">Keep Browsing</span>
+      <h2 class="bevan" style="font-size:clamp(24px,2.6vw,34px)">More From The Bench</h2>
+    </div></div>
+    <div class="prods">
+      <a class="prod" href="../p/cord-keepers.html" data-cat="duty" data-speed="rts">
+        <div class="prod-img"><span class="tag dark">Ready To Ship</span><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/123/603/30BA04D4-BC4E-4024-93B9-5CC02CA5753C__65447.1605319963.jpg" alt="Cord Keepers" loading="lazy"></div>
+        <div class="prod-info"><h3>Cord Keepers</h3><div class="price">$10</div><small>A perfect addition to your JP Custom Leatherworks Radio strap. Cord keepers are made…</small></div>
+      </a>
+      <a class="prod" href="../p/pen-loop.html" data-cat="everyday" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/135/517/91B39699-C467-4DF9-90D7-29163A1BB1E3__18522.1596065593.jpg" alt="Pen Loop" loading="lazy"></div>
+        <div class="prod-info"><h3>Pen Loop</h3><div class="price">$10</div><small>Another one of our great radio strap additions! Must be purchased with one of our radio…</small></div>
+      </a>
+      <a class="prod" href="../p/reflective-helmet-decal.html" data-cat="helmet" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/187/688/6FC0D83D-C603-4A58-91C8-1D7CF832950A__14076.1699985957.jpg" alt="Reflective Helmet Decal" loading="lazy"></div>
+        <div class="prod-info"><h3>Reflective Helmet Decal</h3><div class="price">$7.99</div><small>2” Reflective JP Pin-Up girl</small></div>
+      </a>
+      <a class="prod" href="../p/original-kraft-3-pack.html" data-cat="everyday" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/155/596/Screen_Shot_2020-11-10_at_6.26.03_PM__29690.1605051175.png" alt="Original Kraft 3 Pack" loading="lazy"></div>
+        <div class="prod-info"><h3>Original Kraft 3 Pack</h3><div class="price">$11.99</div><small>Field Notes original 48-page notebooks are available in three variations – graph,…</small></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="photoModal" role="dialog" aria-modal="true" aria-labelledby="photoTitle" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-x" aria-label="Close">&times;</button>
+    <h2 id="photoTitle"></h2>
+    <p class="modal-note" id="photoNote"></p>
+    <div id="photoBody"></div>
+  </div>
+</div>
+
+<script>
+  // photo swatch dialog - same charts the strap builder uses
+  const PHOTOS = {
+    leather:{t:'Leather Colors', n:'Photographed on real bridle leather. Shows the ten standard colors — splatter finishes are painted to order.',
+             i:[['../assets/swatch-leather.jpg','']]},
+    stitch :{t:'Stitching Colors', n:'Real thread stitched into black leather, so you can judge it against the leather rather than a flat chip.',
+             i:[['../assets/swatch-stitching.jpg','']]},
+    paint  :{t:'Text Paint Colors', n:'Hand-painted letters, photographed. Themed finishes add +$15 where offered.',
+             i:[['../assets/swatch-paint-standard.jpg','Standard paints'],['../assets/swatch-paint-themed.jpg','Themed finishes']]},
+    outline:{t:'Text Outline Colors', n:'Outlines use the standard paints.',
+             i:[['../assets/swatch-paint-standard.jpg','']]},
+    stamps :{t:'Stamp Catalog', n:'Every stamp photographed on black leather, painted the way it ships.',
+             i:[['../assets/chart-stamps-1.jpg',''],['../assets/chart-stamps-2.jpg',''],
+                ['../assets/chart-stamps-3.jpg',''],['../assets/chart-stamps-4.jpg','']]},
+  };
+  const pModal=document.getElementById('photoModal');
+  document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>{
+    const p=PHOTOS[b.dataset.photo]; if(!p) return;
+    document.getElementById('photoTitle').textContent=p.t;
+    document.getElementById('photoNote').textContent=p.n;
+    document.getElementById('photoBody').innerHTML=p.i.map(([src,cap])=>
+        (cap?'<h3>'+cap+'</h3>':'')+'<img class="swatch-photo" loading="lazy" src="'+src+'" alt="'+p.t+'">').join('');
+    pModal.hidden=false;
+  }));
+  pModal.addEventListener('click',e=>{
+    if(e.target===pModal||e.target.closest('.modal-x')) pModal.hidden=true;
+  });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') pModal.hidden=true; });
+
+  // gallery
+  document.querySelectorAll('#thumbs .th').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('#thumbs .th').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('mainImg').src = t.dataset.src;
+  }));
+  // chip groups + price total
+  const BASE = 9.99;
+  function total(){
+    let t = BASE;
+    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price]').forEach(c => t += +c.dataset.price);
+    document.querySelectorAll('select.opt-sel').forEach(s => {
+      const o = s.selectedOptions[0];
+      if (o && o.dataset.price) t += +o.dataset.price;
+    });
+    const s = '$' + (Math.round(t * 100) / 100).toFixed(2).replace(/\.00$/, '');
+    document.getElementById('price').textContent = s;
+    const c = document.getElementById('ctaPrice');
+    if (c) c.textContent = s;
+  }
+  document.querySelectorAll('.pdp-form .chip[data-g], .pdp-form .sw-item[data-g]').forEach(ch => ch.addEventListener('click', () => {
+    document.querySelectorAll('.pdp-form [data-g="' + ch.dataset.g + '"]')
+      .forEach(x => x.classList.remove('on'));
+    ch.classList.add('on');
+    total();
+  }));
+  document.querySelectorAll('.pdp-form .chip[data-toggle]').forEach(ch =>
+    ch.addEventListener('click', () => { ch.classList.toggle('on'); total(); }));
+  document.querySelectorAll('select.opt-sel').forEach(s => s.addEventListener('change', total));
+  total();
+
+  // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
+  (function(){
+    const stage=document.getElementById('stage'), main=document.getElementById('galMain'),
+          strip=document.getElementById('galThumbs');
+    window.gSelect=function(t){
+      strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
+      t.classList.add('on'); window.gLast=t;
+      if(window.gExitLive) gExitLive();
+      main.src=t.dataset.src;
+      const mi=document.getElementById('miniImg'); if(mi) mi.src=t.dataset.src;
+    };
+    strip.querySelectorAll('.gt').forEach(b=>b.addEventListener('click',()=>gSelect(b)));
+    if(strip.children.length) gSelect(strip.children[0]);
+    function step(d){
+      const tiles=[...strip.querySelectorAll('.gt')];
+      const i=tiles.findIndex(t=>t.classList.contains('on'));
+      gSelect(tiles[((i<0?0:i)+d+tiles.length)%tiles.length]);
+    }
+    const ap=document.getElementById('arrowPrev'), an=document.getElementById('arrowNext');
+    if(ap) ap.addEventListener('click',()=>step(-1));
+    if(an) an.addEventListener('click',()=>step(1));
+
+    const brkEl=document.getElementById('priceBrk'), baseTxt=brkEl.textContent;
+    const baseTotal=total;
+    total=function(){
+      baseTotal();
+      const picks=[];
+      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price]')
+        .forEach(c=>{ if(+c.dataset.price>0) picks.push(c.textContent.trim()); });
+      document.querySelectorAll('select.opt-sel').forEach(s=>{
+        const o=s.selectedOptions[0];
+        if(o&&+o.dataset.price>0) picks.push(o.textContent.trim());
+      });
+      brkEl.innerHTML=[baseTxt].concat(picks.map(t=>'+ '+t)).join('<br>');
+    };
+    total();
+  })();
+
+</script>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="../index.html"><img src="../assets/jp-logo.png" alt="JP Custom Leatherworks logo"></a>
+        <p>Family owned &amp; operated. Handcrafted Fire &amp; EMS leather gear, made in Whiting, New Jersey.</p>
+        <p style="margin-top:14px">108 Lacey Rd, STE 12<br>Whiting, NJ 08759<br>(609) 367-2479</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="../shop.html">Fire &amp; EMS Gear</a></li>
+          <li><a href="../shop.html">Quick Ship Series</a></li>
+          <li><a href="../shop.html">Ready to Ship</a></li>
+          <li><a href="../shop.html">Leather Goods</a></li>
+          <li><a href="../configurator-v2.html">Custom Radio Strap</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="../about.html">About Us</a></li>
+          <li><a href="../about.html">Mission &amp; Values</a></li>
+          <li><a href="../bulk-orders.html">Bulk Orders</a></li>
+          <li><a href="../contact.html">Leather Care</a></li>
+          <li><a href="../contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Stay In The Loop</h4>
+        <p style="margin-top:0">New gear drops, giveaways, and behind-the-bench photos from the shop.</p>
+        <div class="news-in">
+          <input type="email" placeholder="Email address">
+          <button type="button">Join</button>
+        </div>
+      </div>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 JP Custom Leatherworks. All rights reserved.</span>
+      <span>Family Owned &amp; Operated · Handmade In Whiting, NJ</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strap Builder v2 — JP Custom Leatherworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* ---- configurator layout ---- */
+  .cfg{padding:46px 0 90px}
+  .cfg-grid{display:grid;grid-template-columns:minmax(440px,1.1fr) 1fr;gap:48px;align-items:start}
+  /* the site header is sticky at top:0, so the pinned preview has to start below
+     it or its top slides underneath. --head is measured at runtime because the
+     header wraps to a second line on narrow windows. */
+  .cfg-preview{position:sticky;top:calc(var(--head,87px) + 16px);
+    max-height:calc(100vh - var(--head,87px) - 32px)}
+  .cfg-stage{background:#151515;border:1px solid var(--line);border-radius:14px;position:relative;overflow:hidden}
+  /* and the whole column has to fit the viewport, or its lower half (price,
+     buttons, zoom chips) is unreachable at every scroll position. 260px is the
+     chrome under the stage plus the pin offset. */
+  .cfg-stage svg{display:block;width:100%;height:auto;margin:0 auto;
+    max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
+  /* photo gallery is the default view; the SVG rig is the supplemental
+     "Live Preview" tile in the thumb strip */
+  .cfg-stage #galMain{display:block;width:100%;height:auto;margin:0 auto;object-fit:contain;
+    max-height:min(76vh, calc(100vh - var(--head,87px) - 215px))}
+  .cfg-stage.live #galMain{display:none}
+  .st-arrow{position:absolute;top:50%;transform:translateY(-50%);left:10px;z-index:2;
+    width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(21,21,21,.65);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0 0 3px}
+  .st-arrow.next{left:auto;right:10px}
+  .st-arrow:hover{background:var(--gold);color:#1c1500;border-color:var(--gold)}
+  .cfg-stage.live .st-arrow{display:none}
+  /* in photo mode the real #art svg LIVES inside the price-box mini thumb —
+     one element moved between slots, so every CSS toggle (double stitch,
+     splatter, holster on/off) keeps working at both sizes */
+  #art{display:block;width:100%;height:auto}
+  .mini{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:#151515;
+    border:1px solid var(--line);border-radius:10px;padding:5px 9px 5px 5px;cursor:pointer}
+  .mini-slot{width:46px;height:46px;border-radius:7px;overflow:hidden;background:#1c1c1c;display:block}
+  .mini-slot svg{max-height:46px}
+  .mini-slot img{width:100%;height:100%;object-fit:cover;display:none}
+  .mini-cta{font-family:'Jost',sans-serif;font-weight:700;font-size:.56rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold);text-align:left;line-height:1.35}
+  .mini:hover{border-color:var(--gold)}
+  /* gold ripple when an option changes the build */
+  @keyframes buildPing{0%{box-shadow:0 0 0 0 rgba(247,184,41,.85)}100%{box-shadow:0 0 0 14px rgba(247,184,41,0)}}
+  .ping{animation:buildPing .7s ease-out}
+  /* every photo visible at once: two fixed rows, no scrolling
+     (JS sets the column count to ceil(n/2)) */
+  .gal-thumbs{display:grid;gap:6px;margin-top:10px}
+  .gal-thumbs .gt{aspect-ratio:1;width:100%;border-radius:8px;border:1.5px solid var(--line);
+    overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
+  .gal-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
+  .gal-thumbs .gt.on{border-color:var(--gold);opacity:1}
+  .gal-thumbs .gt:hover{opacity:1}
+  .cfg-price{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:12px 18px;background:#242424;border:1px solid var(--line);border-radius:12px}
+  .cfg-price .amt{font-family:'Bevan',serif;font-size:1.7rem;color:var(--gold)}
+  .cfg-price .brk{font-size:.78rem;color:var(--muted);text-align:right;line-height:1.5}
+  .cfg-actions{display:flex;gap:10px;margin-top:12px}
+  .cfg-actions button{flex:1;cursor:pointer;font-family:'Jost',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem;padding:13px 10px;border-radius:200px;border:1px solid var(--line);background:#2e2e2e;color:#fff}
+  .cfg-actions button.gold{background:var(--gold);border-color:var(--gold);color:#1c1500}
+  .cfg-actions button:hover{filter:brightness(1.08)}
+  /* zoom chips hidden for now — the views themselves still work (state.view is
+     'all', which is the flat-lay, or the diagonal when there is no holster).
+     Set this back to flex to bring the chips back. */
+  .zoombar{display:none;gap:8px;margin-top:12px}
+  .zoombar .chip{font-size:11px;padding:7px 16px}
+  .about-strap{border-top:1px solid var(--line);padding:64px 0 76px;margin-top:26px}
+  .about-strap .eyebrow{color:var(--gold)}
+  .about-strap h2{font-size:clamp(1.3rem,2.4vw,1.9rem);margin:8px 0 30px}
+  .about-cols{display:grid;grid-template-columns:1fr 1fr;gap:52px}
+  .about-cols h3{font-family:'Jost',sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.14em;font-size:.85rem;color:var(--gold);margin:26px 0 10px}
+  .about-cols h3:first-child{margin-top:0}
+  .about-cols p,.about-cols li{font-size:.92rem;line-height:1.75;color:#cfcfcf;margin:0 0 14px}
+  .about-cols ul{margin:0 0 14px;padding-left:20px}
+  @media (max-width:960px){.about-cols{grid-template-columns:1fr}}
+  /* ---- control groups ---- */
+  .cg{margin-bottom:34px;padding-bottom:30px;border-bottom:1px solid var(--line)}
+  .cg:last-child{border-bottom:0}
+  .cg-h{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+  .cg-h .num{font-family:'Bevan',serif;color:var(--gold);font-size:.95rem}
+  .cg-h h3{font-family:'Jost',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:.95rem;margin:0}
+  .cg-h .pick{margin-left:auto;font-size:.8rem;color:var(--muted)}
+  .cg-note{font-size:.8rem;color:var(--muted);margin:0 0 14px}
+  .cg-note b{color:var(--gold);font-weight:600}
+  .text-row{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+  .text-row input{flex:1}
+  .beta-tag{display:inline-block;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;background:var(--gold);color:#1c1500;font-weight:700;border-radius:200px;padding:3px 10px;vertical-align:middle;margin-left:8px}
+  @media (max-width:960px){
+    .cfg-grid{grid-template-columns:1fr}
+    .cfg-preview{position:relative;top:0;max-height:none}
+    .cfg-stage svg{max-height:60vh}
+  }
+
+  .opt-row{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{background:transparent;font-family:Jost,system-ui,sans-serif;color:#fff;
+    border:1.5px solid rgba(255,255,255,.3);border-radius:200px;padding:9px 18px;
+    font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    cursor:pointer;transition:all .2s}
+  .opt:hover{border-color:var(--gold)}
+  .opt.on{border-color:var(--gold);background:rgba(247,184,41,.14)}
+  .opt b{color:var(--gold);font-weight:700}
+  .cg-h .req{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+    border:1px solid rgba(247,184,41,.5);border-radius:3px;padding:1px 5px}
+  .sw-item .lab{white-space:normal}
+  .sw-item{min-height:38px}
+
+  /* stamp pickers: a select can't draw artwork in its options, so this is a
+     listbox that shows each emblem next to its name. Built to scroll, because
+     the live listing has 116 of them. */
+  .stamp-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .dd{position:relative}
+  .dd-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--char);
+    border:1.5px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;
+    padding:9px 32px 9px 10px;font-family:Jost,system-ui,sans-serif;font-size:13px;
+    cursor:pointer;text-align:left;position:relative}
+  .dd-btn::after{content:"";position:absolute;right:13px;top:50%;margin-top:-2px;
+    border:5px solid transparent;border-top-color:var(--gold)}
+  .dd-btn:hover,.dd.open .dd-btn{border-color:var(--gold)}
+  .dd-list{display:none;position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);
+    max-height:296px;overflow:auto;background:#242424;border:1.5px solid var(--gold);
+    border-radius:8px;padding:4px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
+  .dd.open .dd-list{display:block}
+  .dd-opt{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:6px;
+    cursor:pointer;font-size:13px;line-height:1.3}
+  .dd-opt:hover{background:rgba(247,184,41,.16)}
+  .dd-opt.on{background:rgba(247,184,41,.26)}
+  .dd-ico{width:26px;height:26px;flex:none;border-radius:5px;background:#efe9dd;padding:2px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .dd-ico.none{background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)}
+
+  /* splatter paint: an extra pass over the leather, off unless the chosen
+     leather is one of the five splatter finishes */
+  #art .lay-splatter{display:none}
+  #art.splat .lay-splatter{display:inline}
+
+  /* the selected-option name in each group header carries its own colour chip,
+     so the current pick reads at a glance without hunting the highlighted pill */
+  .cg-h .pick .pdot{display:inline-block;width:12px;height:12px;border-radius:50%;
+    margin-right:6px;vertical-align:-1px;border:1px solid rgba(255,255,255,.45);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+
+  /* a splatter dot shows a window of the real spatter tile - CSS gradients tile on
+     a fixed pitch and read as a grid at this size */
+  .sw-item .dot,.cg-h .pick .pdot{overflow:hidden;position:relative}
+  .sw-item .dot>svg,.cg-h .pick .pdot>svg{position:absolute;left:0;top:0;width:100%;height:100%}
+
+  .fit-wrap{overflow-x:auto;margin:0 -4px 10px}
+  .fit-tbl{border-collapse:separate;border-spacing:3px;font-size:.68rem;margin:0 auto}
+  .fit-tbl th{font-weight:600;color:var(--muted);white-space:nowrap;padding:0 3px;
+    font-size:.6rem;letter-spacing:.04em}
+  .fit-tbl thead th{text-align:center}
+  .fit-tbl tbody th{text-align:right;color:rgba(255,255,255,.8)}
+  .fit{width:100%;min-width:34px;border:0;border-radius:5px;padding:5px 0;cursor:pointer;
+    font-family:Jost,system-ui,sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.03em;
+    color:#12100e;transition:transform .12s,box-shadow .12s}
+  .fit:hover{transform:scale(1.14);box-shadow:0 0 0 2px var(--gold)}
+  .fit-M{background:#8fbf7a}
+  .fit-L{background:#e8b84b}
+  .fit-X{background:#79a8d8}
+  .fit-C{background:#6f6a63;color:#f2efe8}
+  .fit-key{font-size:.72rem;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+  .fit-key .fit{width:auto;min-width:0;padding:3px 7px;cursor:default;margin-left:8px}
+  .fit-key .fit:hover{transform:none;box-shadow:none}
+  .swatch-photo{display:block;width:100%;height:auto;border-radius:10px;
+    border:1px solid var(--line);margin-top:4px}
+  /* size guide */
+  .guide-btn{background:transparent;border:1px solid rgba(247,184,41,.55);color:var(--gold);
+    font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;border-radius:200px;padding:2px 9px;cursor:pointer;transition:all .2s}
+  .guide-btn:hover{background:rgba(247,184,41,.16)}
+  /* one-time shimmer on the Leather group's swatch button - first thing
+     everyone touches, so that's where the hint pays off */
+  @keyframes swatchGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(247,184,41,0);background:transparent}
+    50%{box-shadow:0 0 14px 2px rgba(247,184,41,.55);background:rgba(247,184,41,.22)}
+  }
+  .guide-btn.shimmer{animation:swatchGlow 1.6s ease-in-out 3;animation-delay:1.2s}
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal[hidden]{display:none}
+  .modal-card{position:relative;background:#242424;border:1px solid var(--line);border-radius:14px;
+    max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:30px 32px 34px;
+    box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .modal-card h2{font-family:Bevan,serif;color:var(--gold);font-size:1.3rem;margin:0 0 18px}
+  .modal-card h3{font-family:Jost,sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.14em;font-size:.8rem;margin:26px 0 10px;color:#fff}
+  .modal-card p{font-size:.86rem;line-height:1.6;color:rgba(255,255,255,.78);margin:0 0 12px}
+  .modal-card p.lead{color:var(--gold);font-weight:600;margin-bottom:4px;font-size:.82rem}
+  .modal-x{position:absolute;top:12px;right:14px;background:transparent;border:0;color:#fff;
+    font-size:1.6rem;line-height:1;cursor:pointer;opacity:.65;padding:4px 8px}
+  .modal-x:hover{opacity:1}
+  .size-tbl{width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:6px}
+  .size-tbl th{text-align:left;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);padding:0 0 7px}
+  .size-tbl td{padding:8px 0;border-top:1px solid var(--line);color:rgba(255,255,255,.85)}
+  .size-tbl td:last-child{text-align:right}
+
+  /* ================= SVG artwork styling ================= */
+  /* stitching: one geometry set, drawn twice (dark bed + colored thread).
+     class-based so the rows can live in several groups at different depths */
+  #art .stG use{fill:none;stroke-linecap:round;stroke-dasharray:11 8}
+  #art .stBed use{stroke:#000;stroke-opacity:.5;stroke-width:6.5}
+  #art .stThread use{stroke:var(--stitch);stroke-width:3.5}
+  /* double-stitch rows hidden until enabled */
+  #art .st2{display:none}
+  #art.dbl .st2{display:inline}
+  /* no stitching / tooled groove */
+  #art.nostitch .stG{display:none}
+  #art.groove .stBed use{stroke-opacity:.34;stroke-width:5;stroke-dasharray:none}
+  #art.groove .stThread use{stroke-dasharray:none;stroke-width:2.4;stroke-opacity:.5}
+  /* Both traced pieces carry their own thread layers. Their element ids are
+     prefixed per subject (hl- / as-) so the two injected blocks can't collide,
+     so the switches below hook onto the stable classes instead. Every leather
+     layer is traced solid, holes filled under whatever sits on top, so a thread
+     layer can simply be switched off and the clean panel shows through. */
+  #art .lay-mat-thread-2,#art .ol-mat-thread-2{display:none}
+  #art.dbl .lay-mat-thread-2,#art.dbl .ol-mat-thread-2{display:inline}
+  #art.nostitch .lay-mat-thread,#art.nostitch .lay-mat-thread-2,
+  #art.nostitch .ol-mat-thread,#art.nostitch .ol-mat-thread-2{display:none}
+  #art.groove .lay-mat-thread,#art.groove .lay-mat-thread-2{opacity:.4}
+</style>
+</head>
+<body>
+
+<div class="announce">Lifetime Guarantee On All Gear &nbsp;·&nbsp; Free Standard Shipping On All Orders &nbsp;·&nbsp; Handmade In Whiting, NJ</div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="index.html">
+      <img src="assets/jp-logo.png" alt="JP Custom Leatherworks bulldog logo">
+      <span class="logo-word">
+        <span class="bevan">JP Custom</span>
+        <span>Leatherworks</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a href="shop.html">Our Products</a>
+      <a href="configurator-v2.html" class="hot">Custom Radio Strap</a>
+      <a href="about.html">About Us</a>
+      <a href="bulk-orders.html">Bulk Orders</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="nav-icons">
+      <a href="#">Search</a>
+      <a href="#" class="cart-pill">Cart · 0</a>
+    </div>
+  </div>
+</header>
+
+<div class="cfg">
+  <div class="wrap">
+    <div class="crumbs" style="margin-bottom:10px">Custom Radio Strap</div>
+    <h1 class="bevan" style="font-size:clamp(1.6rem,3.2vw,2.4rem);margin:0 0 32px">Build Your Rig</h1>
+    <div class="cfg-grid">
+
+      <!-- ================= PREVIEW ================= -->
+      <div class="cfg-preview">
+        <div class="cfg-stage" id="stage">
+<img id="galMain" alt="Custom radio strap product photo">
+<button type="button" class="st-arrow" id="arrowPrev" aria-label="Previous photo">&#8249;</button>
+<button type="button" class="st-arrow next" id="arrowNext" aria-label="Next photo">&#8250;</button>
+<svg id="art" class="dbl" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
+     style="--leather:#20191a;--stitch:#2fbf57;--hw:#26262a;--copper:#b87333;--paint:#191413;--outline:#39d353"
+     aria-label="Live preview of your custom radio strap set">
+<defs>
+
+  <!-- ---------- shading ---------- -->
+  <linearGradient id="sheenV" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0"   stop-color="#fff" stop-opacity=".15"/>
+    <stop offset=".16" stop-color="#fff" stop-opacity=".05"/>
+    <stop offset=".55" stop-color="#000" stop-opacity=".03"/>
+    <stop offset=".9"  stop-color="#000" stop-opacity=".16"/>
+    <stop offset="1"   stop-color="#000" stop-opacity=".28"/>
+  </linearGradient>
+  <radialGradient id="domeG" cx=".34" cy=".28" r=".92">
+    <stop offset="0"   stop-color="#fff" stop-opacity=".42"/>
+    <stop offset=".38" stop-color="#fff" stop-opacity=".08"/>
+    <stop offset=".72" stop-color="#000" stop-opacity=".10"/>
+    <stop offset="1"   stop-color="#000" stop-opacity=".45"/>
+  </radialGradient>
+  <linearGradient id="metalG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0"   stop-color="#fff" stop-opacity=".30"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity=".02"/>
+    <stop offset="1"   stop-color="#000" stop-opacity=".38"/>
+  </linearGradient>
+  <!-- cylindrical shading for the pieces that wrap the radio -->
+  <linearGradient id="barrelH" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0"   stop-color="#000" stop-opacity=".34"/>
+    <stop offset=".14" stop-color="#000" stop-opacity=".08"/>
+    <stop offset=".34" stop-color="#fff" stop-opacity=".08"/>
+    <stop offset=".62" stop-color="#000" stop-opacity=".04"/>
+    <stop offset=".88" stop-color="#000" stop-opacity=".18"/>
+    <stop offset="1"   stop-color="#000" stop-opacity=".38"/>
+  </linearGradient>
+  <radialGradient id="bgG" cx=".5" cy=".42" r=".78">
+    <stop offset="0" stop-color="#fbfaf7"/>
+    <stop offset="1" stop-color="#e9e5dd"/>
+  </radialGradient>
+
+  <!-- ---------- leather grain ---------- -->
+  <filter id="grainF" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="4" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <pattern id="grainTex" width="260" height="260" patternUnits="userSpaceOnUse">
+    <rect width="260" height="260" filter="url(#grainF)"/>
+  </pattern>
+
+  <!-- ---------- flat-lay drop shadow + contact shadow ---------- -->
+  <filter id="drop" x="-14%" y="-10%" width="128%" height="122%">
+    <feDropShadow dx="2" dy="9" stdDeviation="11" flood-color="#3a2f24" flood-opacity=".30"/>
+  </filter>
+  <filter id="contact" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="4.5"/>
+  </filter>
+
+  <!-- ==========================================================
+       LEATHER GEOMETRY — written once, painted in four passes
+       (fill · sheen · grain · edge). Split into a back layer and
+       a front layer so the loop tab and retention strap can cast
+       a contact shadow onto the pieces underneath.
+       ========================================================== -->
+  <!-- The holster is no longer drawn here — it is the traced material map,
+       injected further down. Only the belt and anti-sway are hand-built. -->
+  <g id="geoL1">
+    <!-- belt strap (bleeds off both edges) -->
+    <rect x="-460" y="130" width="1920" height="116"/>
+  </g>
+
+  <!-- ---------- stitch runs (geometry only) — rows sit 8 in from each edge,
+       double partners 9 further in ---------- -->
+  <!-- belt -->
+  <path id="q1" d="M-460 138 H1460"/><path id="q2" d="M-460 238 H1460"/>
+  <path id="q3" d="M-460 147 H1460"/><path id="q4" d="M-460 229 H1460"/>
+
+  <!-- ---------- hardware parts ---------- -->
+  <!-- line-24 snap: drawn at r=10, placed with translate+scale -->
+  <g id="snap">
+    <circle r="10.6" fill="#000" opacity=".3"/>
+    <circle r="10" fill="var(--hw)"/>
+    <circle r="10" fill="url(#domeG)"/>
+    <circle r="6.2" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="1.3"/>
+    <circle cx="-3.2" cy="-3.6" r="2.4" fill="#fff" opacity=".22"/>
+  </g>
+  <!-- copper rivet -->
+  <g id="rivet">
+    <circle r="10.6" fill="#000" opacity=".28"/>
+    <circle r="10" fill="var(--copper)"/>
+    <circle r="10" fill="url(#domeG)"/>
+    <circle cx="-3" cy="-3.4" r="3.1" fill="#fff" opacity=".28"/>
+  </g>
+
+  <!-- ---------- stamp artwork (drawn in a ±50 box) ---------- -->
+  <g id="ph-maltese">
+    <g fill="#bd2020" stroke="#e3b64f" stroke-width="5" stroke-linejoin="round" paint-order="stroke">
+      <path id="mArm" d="M-12 -12 C-17 -29 -25 -42 -44 -51 C-36 -43 -31 -40 0 -38 C31 -40 36 -43 44 -51 C25 -42 17 -29 12 -12 Z"/>
+      <use href="#mArm" transform="rotate(90)"/>
+      <use href="#mArm" transform="rotate(180)"/>
+      <use href="#mArm" transform="rotate(270)"/>
+    </g>
+    <circle r="16" fill="#e3b64f" stroke="#8a5a10" stroke-width="2.4"/>
+    <circle r="10" fill="#bd2020"/>
+    <circle r="4.2" fill="#e3b64f"/>
+  </g>
+
+  <clipPath id="roundClip"><circle r="44"/></clipPath>
+  <g id="axe">
+    <rect x="-5" y="-36" width="10" height="72" rx="4.5"/>
+    <path d="M-4 -36 C-19 -34 -27 -25 -27 -12 L-4 -18 Z"/>
+    <path d="M4 -36 C19 -34 27 -25 27 -12 L4 -18 Z"/>
+  </g>
+  <g id="ph-flag">
+    <g clip-path="url(#roundClip)">
+      <rect x="-46" y="-46" width="92" height="92" fill="#f2efe8"/>
+      <g fill="#b3201f">
+        <rect x="-46" y="-46" width="92" height="15"/><rect x="-46" y="-16" width="92" height="15"/>
+        <rect x="-46" y="14" width="92" height="15"/><rect x="-46" y="44" width="92" height="15"/>
+      </g>
+      <rect x="-46" y="-46" width="46" height="44" fill="#23439c"/>
+      <g fill="#f2efe8">
+        <circle cx="-37" cy="-37" r="3"/><circle cx="-23" cy="-37" r="3"/><circle cx="-9" cy="-37" r="3"/>
+        <circle cx="-30" cy="-26" r="3"/><circle cx="-16" cy="-26" r="3"/>
+        <circle cx="-37" cy="-15" r="3"/><circle cx="-23" cy="-15" r="3"/><circle cx="-9" cy="-15" r="3"/>
+      </g>
+    </g>
+    <g fill="#16110f" stroke="#16110f" stroke-width="2" stroke-linejoin="round" transform="scale(.82)">
+      <use href="#axe" transform="rotate(27)"/>
+      <use href="#axe" transform="rotate(-27)"/>
+    </g>
+    <circle r="44" fill="none" stroke="#16110f" stroke-width="6"/>
+    <circle r="49" fill="none" stroke="#16110f" stroke-width="2.4" stroke-opacity=".55"/>
+  </g>
+
+  <g id="ph-life">
+    <g fill="#1c56c4" stroke="#eef2f7" stroke-width="4" stroke-linejoin="round" paint-order="stroke">
+      <rect id="lBar" x="-9" y="-46" width="18" height="92" rx="7"/>
+      <use href="#lBar" transform="rotate(60)"/>
+      <use href="#lBar" transform="rotate(-60)"/>
+    </g>
+    <rect x="-2.6" y="-27" width="5.2" height="54" rx="2.6" fill="#eef2f7"/>
+    <path d="M-9 -20 C-2 -16 -9 -8 -2 -4 C-9 0 -2 8 -9 12" fill="none" stroke="#eef2f7" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <g id="ph-shield">
+    <path d="M0 -45 C18 -37 32 -35 36 -31 C36 6 22 32 0 46 C-22 32 -36 6 -36 -31 C-32 -35 -18 -37 0 -45 Z"
+          fill="#1b2a55" stroke="#e3b64f" stroke-width="4.5" stroke-linejoin="round" paint-order="stroke"/>
+    <path d="M0 -33 C13 -27 23 -26 26 -23 C26 3 16 23 0 34 C-16 23 -26 3 -26 -23 C-23 -26 -13 -27 0 -33 Z"
+          fill="none" stroke="#e3b64f" stroke-width="2" stroke-opacity=".8"/>
+    <polygon points="0,-18 5.3,-2.4 21.8,-2.4 8.5,7.5 13.5,23 0,13.4 -13.5,23 -8.5,7.5 -21.8,-2.4 -5.3,-2.4" fill="#e3b64f"/>
+  </g>
+
+  <g id="ph-bugle">
+    <g fill="#e3b64f" stroke="#7a5410" stroke-width="2.4" stroke-linejoin="round">
+      <path d="M-30 26 L-6 -22 L12 -14 L-12 34 Z"/>
+      <path d="M-6 -26 C4 -40 22 -42 32 -34 C22 -30 14 -22 12 -12 Z"/>
+      <rect x="-30" y="20" width="16" height="16" rx="4" transform="rotate(-24 -22 28)"/>
+    </g>
+  </g>
+
+  <!-- ===== splatter paint =====
+       One tile of thrown paint, reused by three patterns. The holster is placed
+       at scale 0.2309 and the anti-sway at 0.4816, so their patterns are scaled
+       by the inverse to keep every fleck the same physical size across the rig. -->
+  <g id="splatTile">
+    <g fill="var(--sp1)">
+      <ellipse cx="243.3" cy="52.0" rx="12.6" ry="9.5" transform="rotate(148 243.3 52.0)"/><ellipse cx="456.3" cy="347.1" rx="10.6" ry="8.2" transform="rotate(33 456.3 347.1)"/><ellipse cx="160.9" cy="248.0" rx="7.1" ry="6.1" transform="rotate(76 160.9 248.0)"/><ellipse cx="256.6" cy="69.3" rx="6.7" ry="5.5" transform="rotate(123 256.6 69.3)"/>
+      <ellipse cx="91.8" cy="332.6" rx="12.7" ry="10.5" transform="rotate(40 91.8 332.6)"/><ellipse cx="455.7" cy="376.6" rx="9.5" ry="5.3" transform="rotate(165 455.7 376.6)"/><ellipse cx="204.9" cy="147.3" rx="9.1" ry="7.9" transform="rotate(52 204.9 147.3)"/><ellipse cx="100.1" cy="361.5" rx="10.7" ry="6.7" transform="rotate(149 100.1 361.5)"/>
+      <ellipse cx="390.5" cy="42.6" rx="7.7" ry="7.3" transform="rotate(99 390.5 42.6)"/><ellipse cx="17.7" cy="472.0" rx="6.3" ry="5.5" transform="rotate(54 17.7 472.0)"/><ellipse cx="207.9" cy="428.3" rx="10.4" ry="6.2" transform="rotate(90 207.9 428.3)"/><ellipse cx="110.4" cy="185.3" rx="8.9" ry="7.5" transform="rotate(172 110.4 185.3)"/>
+      <ellipse cx="373.6" cy="22.3" rx="9.4" ry="8.3" transform="rotate(137 373.6 22.3)"/><ellipse cx="139.1" cy="415.5" rx="5.2" ry="4.1" transform="rotate(73 139.1 415.5)"/><ellipse cx="71.5" cy="36.0" rx="4.8" ry="3.1" transform="rotate(177 71.5 36.0)"/><ellipse cx="268.6" cy="330.0" rx="5.2" ry="3.7" transform="rotate(98 268.6 330.0)"/>
+      <ellipse cx="304.8" cy="70.7" rx="4.7" ry="2.6" transform="rotate(1 304.8 70.7)"/><ellipse cx="265.1" cy="372.6" rx="4.7" ry="2.4" transform="rotate(119 265.1 372.6)"/><ellipse cx="410.0" cy="111.8" rx="5.1" ry="4.2" transform="rotate(32 410.0 111.8)"/><ellipse cx="418.3" cy="59.4" rx="3.2" ry="2.6" transform="rotate(70 418.3 59.4)"/>
+      <ellipse cx="386.3" cy="66.2" rx="4.9" ry="4.7" transform="rotate(148 386.3 66.2)"/><ellipse cx="51.6" cy="41.9" rx="3.3" ry="2.3" transform="rotate(153 51.6 41.9)"/><ellipse cx="82.9" cy="206.7" rx="4.9" ry="3.9" transform="rotate(132 82.9 206.7)"/><ellipse cx="282.1" cy="193.7" rx="4.5" ry="3.9" transform="rotate(77 282.1 193.7)"/>
+      <ellipse cx="198.0" cy="396.3" rx="4.6" ry="2.8" transform="rotate(143 198.0 396.3)"/><ellipse cx="171.9" cy="260.5" rx="2.9" ry="2.1" transform="rotate(28 171.9 260.5)"/><ellipse cx="434.9" cy="145.3" rx="5.1" ry="4.1" transform="rotate(84 434.9 145.3)"/><ellipse cx="188.2" cy="386.0" rx="4.8" ry="3.8" transform="rotate(107 188.2 386.0)"/>
+      <ellipse cx="489.1" cy="477.6" rx="3.2" ry="2.8" transform="rotate(28 489.1 477.6)"/><ellipse cx="185.7" cy="248.3" rx="4.1" ry="2.1" transform="rotate(116 185.7 248.3)"/><ellipse cx="9.0" cy="160.6" rx="5.2" ry="3.3" transform="rotate(129 9.0 160.6)"/><ellipse cx="407.5" cy="338.8" rx="3.4" ry="3.0" transform="rotate(70 407.5 338.8)"/>
+      <ellipse cx="39.6" cy="382.9" rx="4.6" ry="3.5" transform="rotate(49 39.6 382.9)"/><ellipse cx="84.5" cy="415.9" rx="4.1" ry="2.8" transform="rotate(21 84.5 415.9)"/><ellipse cx="249.2" cy="447.2" rx="4.1" ry="2.4" transform="rotate(98 249.2 447.2)"/><ellipse cx="69.6" cy="399.0" rx="3.7" ry="2.5" transform="rotate(127 69.6 399.0)"/>
+      <ellipse cx="457.1" cy="399.4" rx="3.9" ry="3.8" transform="rotate(36 457.1 399.4)"/><ellipse cx="250.2" cy="205.2" rx="3.7" ry="2.6" transform="rotate(129 250.2 205.2)"/><ellipse cx="324.9" cy="443.3" rx="4.1" ry="2.8" transform="rotate(137 324.9 443.3)"/><ellipse cx="462.7" cy="374.9" rx="5.0" ry="2.8" transform="rotate(167 462.7 374.9)"/>
+      <ellipse cx="267.9" cy="25.9" rx="2.4" ry="2.3" transform="rotate(32 267.9 25.9)"/><ellipse cx="127.8" cy="224.3" rx="3.0" ry="2.5" transform="rotate(177 127.8 224.3)"/><ellipse cx="94.4" cy="454.2" rx="4.3" ry="2.8" transform="rotate(139 94.4 454.2)"/><ellipse cx="401.2" cy="139.8" rx="5.3" ry="4.1" transform="rotate(176 401.2 139.8)"/>
+      <ellipse cx="42.9" cy="436.0" rx="3.6" ry="2.8" transform="rotate(179 42.9 436.0)"/><ellipse cx="463.8" cy="88.7" rx="4.3" ry="2.7" transform="rotate(53 463.8 88.7)"/><ellipse cx="467.1" cy="458.0" rx="2.0" ry="2.0"/><ellipse cx="286.9" cy="346.7" rx="0.8" ry="0.8"/>
+      <ellipse cx="398.3" cy="246.4" rx="0.9" ry="0.9"/><ellipse cx="360.9" cy="423.6" rx="1.0" ry="1.0"/><ellipse cx="385.3" cy="443.7" rx="1.5" ry="1.5"/><ellipse cx="474.3" cy="328.8" rx="1.2" ry="1.2"/>
+      <ellipse cx="65.6" cy="171.5" rx="1.5" ry="1.5"/><ellipse cx="398.7" cy="61.6" rx="1.1" ry="1.1"/><ellipse cx="367.3" cy="93.2" rx="2.0" ry="2.0"/><ellipse cx="400.3" cy="189.2" rx="1.2" ry="1.2"/>
+      <ellipse cx="494.8" cy="366.3" rx="1.7" ry="1.7"/><ellipse cx="479.4" cy="303.4" rx="1.0" ry="1.0"/><ellipse cx="350.6" cy="79.1" rx="0.7" ry="0.7"/><ellipse cx="227.0" cy="237.7" rx="2.0" ry="2.0"/>
+      <ellipse cx="275.9" cy="295.9" rx="1.5" ry="1.5"/><ellipse cx="324.1" cy="174.9" rx="1.4" ry="1.4"/><ellipse cx="192.9" cy="260.0" rx="1.1" ry="1.1"/><ellipse cx="3.9" cy="336.3" rx="1.0" ry="1.0"/>
+      <ellipse cx="248.8" cy="174.9" rx="1.1" ry="1.1"/><ellipse cx="8.4" cy="50.0" rx="1.6" ry="1.6"/><ellipse cx="200.5" cy="164.7" rx="2.0" ry="2.0"/><ellipse cx="207.5" cy="310.0" rx="2.1" ry="2.1"/>
+      <ellipse cx="247.9" cy="277.0" rx="1.6" ry="1.6"/><ellipse cx="50.1" cy="450.1" rx="2.1" ry="2.1"/><ellipse cx="455.9" cy="166.4" rx="1.1" ry="1.1"/><ellipse cx="377.6" cy="186.6" rx="1.4" ry="1.4"/>
+      <ellipse cx="235.6" cy="109.5" rx="0.7" ry="0.7"/><ellipse cx="284.7" cy="402.9" rx="1.0" ry="1.0"/><ellipse cx="447.8" cy="124.0" rx="1.7" ry="1.7"/><ellipse cx="233.5" cy="396.9" rx="1.1" ry="1.1"/>
+      <ellipse cx="57.8" cy="343.7" rx="0.8" ry="0.8"/><ellipse cx="211.2" cy="139.4" rx="2.1" ry="2.1"/><ellipse cx="81.7" cy="310.2" rx="1.0" ry="1.0"/><ellipse cx="394.1" cy="24.9" rx="1.4" ry="1.4"/>
+      <ellipse cx="89.0" cy="284.8" rx="1.4" ry="1.4"/><ellipse cx="242.1" cy="308.7" rx="1.7" ry="1.7"/><ellipse cx="146.0" cy="451.6" rx="1.4" ry="1.4"/><ellipse cx="129.9" cy="58.2" rx="1.5" ry="1.5"/>
+      <ellipse cx="337.4" cy="167.9" rx="1.7" ry="1.7"/><ellipse cx="182.2" cy="319.6" rx="1.1" ry="1.1"/><ellipse cx="451.7" cy="328.0" rx="1.5" ry="1.5"/><ellipse cx="390.8" cy="433.5" rx="1.0" ry="1.0"/>
+      <ellipse cx="494.7" cy="255.5" rx="0.8" ry="0.8"/><ellipse cx="461.0" cy="122.1" rx="1.5" ry="1.5"/><ellipse cx="313.5" cy="233.1" rx="1.5" ry="1.5"/><ellipse cx="492.2" cy="341.9" rx="1.6" ry="1.6"/>
+      <ellipse cx="441.7" cy="72.0" rx="0.7" ry="0.7"/><ellipse cx="195.1" cy="96.9" rx="0.9" ry="0.9"/><ellipse cx="400.0" cy="104.2" rx="2.0" ry="2.0"/><ellipse cx="284.8" cy="229.5" rx="1.4" ry="1.4"/>
+      <ellipse cx="139.1" cy="35.4" rx="0.8" ry="0.8"/><ellipse cx="307.6" cy="249.1" rx="0.9" ry="0.9"/><ellipse cx="234.4" cy="439.7" rx="1.3" ry="1.3"/><ellipse cx="346.8" cy="474.6" rx="1.8" ry="1.8"/>
+      <ellipse cx="233.0" cy="449.7" rx="1.2" ry="1.2"/><ellipse cx="27.7" cy="10.3" rx="1.1" ry="1.1"/><ellipse cx="300.9" cy="333.1" rx="2.0" ry="2.0"/><ellipse cx="212.2" cy="348.1" rx="1.1" ry="1.1"/>
+      <ellipse cx="188.9" cy="433.2" rx="1.8" ry="1.8"/><ellipse cx="176.8" cy="341.2" rx="1.9" ry="1.9"/><ellipse cx="127.2" cy="330.9" rx="1.2" ry="1.2"/><ellipse cx="466.7" cy="256.3" rx="2.1" ry="2.1"/>
+      <ellipse cx="177.3" cy="59.7" rx="1.1" ry="1.1"/><ellipse cx="353.9" cy="295.1" rx="1.2" ry="1.2"/><ellipse cx="240.0" cy="34.8" rx="1.2" ry="1.2"/><ellipse cx="337.1" cy="90.4" rx="1.1" ry="1.1"/>
+      <ellipse cx="18.5" cy="269.5" rx="1.3" ry="1.3"/><ellipse cx="429.2" cy="325.5" rx="1.3" ry="1.3"/><ellipse cx="173.4" cy="229.8" rx="1.2" ry="1.2"/><ellipse cx="42.3" cy="269.1" rx="0.8" ry="0.8"/>
+      <ellipse cx="68.3" cy="209.5" rx="1.1" ry="1.1"/><ellipse cx="107.1" cy="17.2" rx="0.9" ry="0.9"/><ellipse cx="267.1" cy="416.0" rx="1.3" ry="1.3"/><ellipse cx="392.2" cy="477.1" rx="1.5" ry="1.5"/>
+      <ellipse cx="1.8" cy="357.0" rx="1.3" ry="1.3"/><ellipse cx="501.8" cy="357.0" rx="1.3" ry="1.3"/><ellipse cx="201.7" cy="164.4" rx="1.4" ry="1.4"/><ellipse cx="24.5" cy="4.4" rx="1.6" ry="1.6"/>
+      <ellipse cx="64.7" cy="470.7" rx="1.5" ry="1.5"/><ellipse cx="355.5" cy="125.5" rx="1.2" ry="1.2"/><ellipse cx="229.6" cy="307.6" rx="1.1" ry="1.1"/><ellipse cx="265.3" cy="249.1" rx="1.1" ry="1.1"/>
+      <ellipse cx="102.9" cy="405.6" rx="1.7" ry="1.7"/><ellipse cx="371.9" cy="43.6" rx="1.2" ry="1.2"/><ellipse cx="8.3" cy="454.3" rx="1.4" ry="1.4"/><ellipse cx="10.0" cy="160.6" rx="1.6" ry="1.6"/>
+      <ellipse cx="28.6" cy="465.5" rx="1.5" ry="1.5"/><ellipse cx="172.2" cy="324.8" rx="1.2" ry="1.2"/><ellipse cx="468.1" cy="165.2" rx="2.0" ry="2.0"/><ellipse cx="470.4" cy="321.2" rx="0.7" ry="0.7"/>
+      <ellipse cx="134.0" cy="288.9" rx="1.0" ry="1.0"/><ellipse cx="208.0" cy="225.3" rx="0.8" ry="0.8"/><ellipse cx="350.2" cy="152.2" rx="0.7" ry="0.7"/><ellipse cx="40.0" cy="402.5" rx="1.2" ry="1.2"/>
+      <ellipse cx="466.5" cy="304.4" rx="1.0" ry="1.0"/><ellipse cx="362.7" cy="450.1" rx="0.9" ry="0.9"/><ellipse cx="294.9" cy="282.5" rx="1.9" ry="1.9"/><ellipse cx="416.9" cy="19.3" rx="2.0" ry="2.0"/>
+      <ellipse cx="113.8" cy="28.4" rx="1.3" ry="1.3"/><ellipse cx="318.0" cy="206.6" rx="0.7" ry="0.7"/><ellipse cx="57.5" cy="402.0" rx="1.3" ry="1.3"/><ellipse cx="150.9" cy="163.6" rx="1.2" ry="1.2"/>
+      <ellipse cx="475.5" cy="385.4" rx="1.4" ry="1.4"/><ellipse cx="449.8" cy="355.2" rx="1.1" ry="1.1"/><ellipse cx="358.2" cy="443.3" rx="0.7" ry="0.7"/><ellipse cx="262.0" cy="284.8" rx="1.3" ry="1.3"/>
+      <ellipse cx="43.9" cy="143.9" rx="1.3" ry="1.3"/><ellipse cx="94.4" cy="219.5" rx="1.4" ry="1.4"/><ellipse cx="240.7" cy="433.1" rx="1.2" ry="1.2"/><ellipse cx="438.3" cy="121.9" rx="1.4" ry="1.4"/>
+      <ellipse cx="346.4" cy="14.7" rx="1.4" ry="1.4"/><ellipse cx="207.8" cy="93.2" rx="1.8" ry="1.8"/><ellipse cx="268.2" cy="242.7" rx="12.1" ry="1.3" transform="rotate(175 268.2 242.7)"/><ellipse cx="82.0" cy="114.1" rx="7.9" ry="2.3" transform="rotate(8 82.0 114.1)"/>
+      <ellipse cx="77.0" cy="262.1" rx="8.9" ry="1.7" transform="rotate(52 77.0 262.1)"/><ellipse cx="393.8" cy="301.1" rx="12.5" ry="2.3" transform="rotate(171 393.8 301.1)"/><ellipse cx="421.8" cy="368.7" rx="7.6" ry="1.6" transform="rotate(99 421.8 368.7)"/><ellipse cx="430.3" cy="285.7" rx="14.0" ry="2.1" transform="rotate(49 430.3 285.7)"/>
+      <ellipse cx="412.3" cy="141.6" rx="13.0" ry="2.0" transform="rotate(100 412.3 141.6)"/>
+    </g>
+    <g fill="var(--sp2)">
+      <ellipse cx="174.2" cy="212.2" rx="10.8" ry="5.2" transform="rotate(90 174.2 212.2)"/><ellipse cx="164.1" cy="414.6" rx="11.2" ry="6.4" transform="rotate(33 164.1 414.6)"/><ellipse cx="455.6" cy="122.7" rx="3.0" ry="2.9" transform="rotate(20 455.6 122.7)"/><ellipse cx="101.6" cy="239.6" rx="3.0" ry="2.7" transform="rotate(77 101.6 239.6)"/>
+      <ellipse cx="122.8" cy="305.3" rx="4.0" ry="3.1" transform="rotate(51 122.8 305.3)"/><ellipse cx="418.4" cy="489.9" rx="3.7" ry="2.8" transform="rotate(126 418.4 489.9)"/><ellipse cx="214.9" cy="353.8" rx="4.0" ry="2.9" transform="rotate(168 214.9 353.8)"/><ellipse cx="460.1" cy="406.3" rx="4.5" ry="2.8" transform="rotate(75 460.1 406.3)"/>
+      <ellipse cx="121.3" cy="117.9" rx="2.8" ry="2.3" transform="rotate(5 121.3 117.9)"/><ellipse cx="289.5" cy="431.1" rx="4.3" ry="2.7" transform="rotate(176 289.5 431.1)"/><ellipse cx="224.3" cy="224.9" rx="4.7" ry="2.9" transform="rotate(118 224.3 224.9)"/><ellipse cx="71.3" cy="24.9" rx="5.2" ry="3.3" transform="rotate(127 71.3 24.9)"/>
+      <ellipse cx="440.0" cy="185.1" rx="3.7" ry="2.9" transform="rotate(119 440.0 185.1)"/><ellipse cx="111.5" cy="261.6" rx="2.5" ry="2.1" transform="rotate(139 111.5 261.6)"/><ellipse cx="300.5" cy="37.8" rx="3.2" ry="2.5" transform="rotate(7 300.5 37.8)"/><ellipse cx="34.1" cy="241.8" rx="2.6" ry="2.5" transform="rotate(41 34.1 241.8)"/>
+      <ellipse cx="263.4" cy="302.1" rx="4.6" ry="4.5" transform="rotate(40 263.4 302.1)"/><ellipse cx="393.2" cy="42.5" rx="3.6" ry="3.2" transform="rotate(129 393.2 42.5)"/><ellipse cx="420.0" cy="494.5" rx="3.3" ry="3.3" transform="rotate(49 420.0 494.5)"/><ellipse cx="147.2" cy="316.8" rx="2.4" ry="2.2" transform="rotate(82 147.2 316.8)"/>
+      <ellipse cx="149.2" cy="182.5" rx="3.6" ry="2.9" transform="rotate(119 149.2 182.5)"/><ellipse cx="206.9" cy="114.9" rx="1.4" ry="1.4"/><ellipse cx="332.2" cy="43.8" rx="1.4" ry="1.4"/><ellipse cx="191.9" cy="16.7" rx="1.3" ry="1.3"/>
+      <ellipse cx="237.7" cy="164.1" rx="1.8" ry="1.8"/><ellipse cx="73.6" cy="271.7" rx="2.1" ry="2.1"/><ellipse cx="263.6" cy="64.0" rx="1.2" ry="1.2"/><ellipse cx="423.5" cy="355.0" rx="1.0" ry="1.0"/>
+      <ellipse cx="111.8" cy="5.0" rx="1.1" ry="1.1"/><ellipse cx="106.1" cy="392.8" rx="0.8" ry="0.8"/><ellipse cx="198.5" cy="6.8" rx="1.8" ry="1.8"/><ellipse cx="80.4" cy="68.7" rx="0.8" ry="0.8"/>
+      <ellipse cx="252.7" cy="91.5" rx="1.2" ry="1.2"/><ellipse cx="468.2" cy="235.1" rx="0.9" ry="0.9"/><ellipse cx="211.7" cy="419.2" rx="0.8" ry="0.8"/><ellipse cx="83.0" cy="358.8" rx="1.9" ry="1.9"/>
+      <ellipse cx="242.0" cy="41.2" rx="1.5" ry="1.5"/><ellipse cx="497.4" cy="31.8" rx="1.2" ry="1.2"/><ellipse cx="346.8" cy="69.4" rx="1.6" ry="1.6"/><ellipse cx="194.3" cy="334.9" rx="1.4" ry="1.4"/>
+      <ellipse cx="270.4" cy="366.8" rx="1.0" ry="1.0"/><ellipse cx="171.4" cy="122.1" rx="1.1" ry="1.1"/><ellipse cx="257.4" cy="190.6" rx="1.0" ry="1.0"/><ellipse cx="407.2" cy="14.0" rx="1.4" ry="1.4"/>
+      <ellipse cx="410.9" cy="448.0" rx="1.6" ry="1.6"/><ellipse cx="179.2" cy="417.8" rx="1.0" ry="1.0"/><ellipse cx="249.1" cy="248.8" rx="1.7" ry="1.7"/><ellipse cx="358.2" cy="184.3" rx="1.4" ry="1.4"/>
+      <ellipse cx="36.3" cy="472.4" rx="2.0" ry="2.0"/><ellipse cx="93.4" cy="141.9" rx="1.7" ry="1.7"/><ellipse cx="316.6" cy="177.2" rx="1.1" ry="1.1"/><ellipse cx="234.3" cy="135.9" rx="2.0" ry="2.0"/>
+      <ellipse cx="484.5" cy="188.8" rx="1.6" ry="1.6"/><ellipse cx="253.0" cy="49.0" rx="1.5" ry="1.5"/><ellipse cx="221.6" cy="294.8" rx="2.0" ry="2.0"/><ellipse cx="201.5" cy="260.5" rx="2.0" ry="2.0"/>
+      <ellipse cx="163.5" cy="84.4" rx="0.9" ry="0.9"/><ellipse cx="197.5" cy="463.6" rx="1.1" ry="1.1"/><ellipse cx="167.0" cy="117.3" rx="1.8" ry="1.8"/><ellipse cx="212.3" cy="153.5" rx="1.9" ry="1.9"/>
+      <ellipse cx="56.4" cy="352.3" rx="1.7" ry="1.7"/><ellipse cx="415.6" cy="227.5" rx="1.8" ry="1.8"/><ellipse cx="383.6" cy="11.2" rx="1.6" ry="1.6"/><ellipse cx="469.7" cy="446.7" rx="1.6" ry="1.6"/>
+      <ellipse cx="189.3" cy="80.2" rx="1.9" ry="1.9"/><ellipse cx="490.7" cy="340.0" rx="1.4" ry="1.4"/><ellipse cx="227.2" cy="484.8" rx="10.5" ry="2.5" transform="rotate(91 227.2 484.8)"/><ellipse cx="212.1" cy="341.1" rx="13.0" ry="2.3" transform="rotate(168 212.1 341.1)"/>
+      <ellipse cx="146.2" cy="156.0" rx="14.8" ry="1.8" transform="rotate(160 146.2 156.0)"/>
+    </g>
+    <g fill="var(--sp3)">
+      <ellipse cx="207.2" cy="113.2" rx="12.6" ry="7.0" transform="rotate(7 207.2 113.2)"/><ellipse cx="445.9" cy="27.3" rx="5.2" ry="4.9" transform="rotate(119 445.9 27.3)"/><ellipse cx="113.6" cy="187.8" rx="4.9" ry="3.1" transform="rotate(5 113.6 187.8)"/><ellipse cx="493.5" cy="-1.2" rx="5.0" ry="5.0" transform="rotate(87 493.5 -1.2)"/>
+      <ellipse cx="493.5" cy="498.8" rx="5.0" ry="5.0" transform="rotate(87 493.5 498.8)"/><ellipse cx="374.1" cy="86.6" rx="3.8" ry="3.3" transform="rotate(140 374.1 86.6)"/><ellipse cx="437.7" cy="449.9" rx="3.7" ry="2.4" transform="rotate(27 437.7 449.9)"/><ellipse cx="1.3" cy="376.1" rx="5.2" ry="2.7" transform="rotate(169 1.3 376.1)"/>
+      <ellipse cx="501.3" cy="376.1" rx="5.2" ry="2.7" transform="rotate(169 501.3 376.1)"/><ellipse cx="268.4" cy="396.5" rx="3.3" ry="2.9" transform="rotate(67 268.4 396.5)"/><ellipse cx="99.4" cy="424.3" rx="2.6" ry="2.5" transform="rotate(68 99.4 424.3)"/><ellipse cx="407.8" cy="265.1" rx="3.1" ry="2.6" transform="rotate(148 407.8 265.1)"/>
+      <ellipse cx="347.4" cy="85.7" rx="2.5" ry="2.1" transform="rotate(146 347.4 85.7)"/><ellipse cx="473.0" cy="496.4" rx="1.5" ry="1.5"/><ellipse cx="199.2" cy="141.3" rx="1.3" ry="1.3"/><ellipse cx="481.5" cy="268.3" rx="1.0" ry="1.0"/>
+      <ellipse cx="332.9" cy="462.3" rx="1.1" ry="1.1"/><ellipse cx="188.0" cy="422.8" rx="1.1" ry="1.1"/><ellipse cx="374.4" cy="485.0" rx="1.7" ry="1.7"/><ellipse cx="473.4" cy="35.1" rx="1.7" ry="1.7"/>
+      <ellipse cx="357.3" cy="177.3" rx="1.7" ry="1.7"/><ellipse cx="368.1" cy="484.8" rx="2.0" ry="2.0"/><ellipse cx="443.9" cy="169.4" rx="1.3" ry="1.3"/><ellipse cx="401.5" cy="373.1" rx="1.2" ry="1.2"/>
+      <ellipse cx="459.5" cy="39.6" rx="1.8" ry="1.8"/><ellipse cx="278.5" cy="336.0" rx="1.0" ry="1.0"/><ellipse cx="314.8" cy="0.5" rx="1.7" ry="1.7"/><ellipse cx="314.8" cy="500.5" rx="1.7" ry="1.7"/>
+      <ellipse cx="255.6" cy="61.4" rx="0.8" ry="0.8"/><ellipse cx="427.6" cy="332.0" rx="1.9" ry="1.9"/><ellipse cx="276.8" cy="223.7" rx="1.0" ry="1.0"/><ellipse cx="186.8" cy="280.1" rx="0.9" ry="0.9"/>
+      <ellipse cx="465.2" cy="109.1" rx="1.3" ry="1.3"/><ellipse cx="443.8" cy="384.5" rx="1.0" ry="1.0"/><ellipse cx="107.3" cy="53.2" rx="0.9" ry="0.9"/><ellipse cx="334.2" cy="167.4" rx="1.0" ry="1.0"/>
+      <ellipse cx="95.4" cy="179.5" rx="0.8" ry="0.8"/><ellipse cx="70.2" cy="381.0" rx="1.4" ry="1.4"/><ellipse cx="319.5" cy="96.9" rx="0.7" ry="0.7"/><ellipse cx="177.2" cy="422.7" rx="0.9" ry="0.9"/>
+      <ellipse cx="462.7" cy="96.2" rx="0.8" ry="0.8"/><ellipse cx="494.5" cy="33.4" rx="1.6" ry="1.6"/><ellipse cx="285.6" cy="104.6" rx="1.5" ry="1.5"/><ellipse cx="95.9" cy="70.3" rx="8.2" ry="1.6" transform="rotate(29 95.9 70.3)"/>
+      <ellipse cx="436.4" cy="430.1" rx="9.4" ry="2.1" transform="rotate(41 436.4 430.1)"/>
+    </g>
+  </g>
+  <pattern id="splatBelt" width="500" height="500" patternUnits="userSpaceOnUse"><use href="#splatTile"/></pattern>
+  <pattern id="splatHl" width="500" height="500" patternUnits="userSpaceOnUse" patternTransform="scale(4.331)"><use href="#splatTile"/></pattern>
+  <pattern id="splatAs" width="500" height="500" patternUnits="userSpaceOnUse" patternTransform="scale(2.076)"><use href="#splatTile"/></pattern>
+</defs>
+
+<!-- ================= studio backdrop ================= -->
+<rect x="-600" y="-600" width="2200" height="2200" fill="url(#bgG)"/>
+
+<!-- ================= the rig ================= -->
+<g id="rig" filter="url(#drop)">
+
+  <!-- ---- hardware that sits behind leather ---- -->
+  <g id="hwBack">
+  </g>
+
+  <!-- ---- belt + anti-sway leather: four passes ---- -->
+  <use href="#geoL1" fill="var(--leather)"/>
+  <use href="#geoL1" fill="url(#sheenV)"/>
+  <use href="#geoL1" fill="url(#grainTex)" opacity=".15" style="mix-blend-mode:overlay"/>
+  <use href="#geoL1" fill="url(#splatBelt)" class="lay-splatter"/>
+  <use href="#geoL1" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="2.2"/>
+  <g stroke="#fff" stroke-opacity=".16" stroke-width="2.6" stroke-linecap="round" fill="none">
+    <path d="M-460 132.4 H1460"/>
+  </g>
+  <!-- layered-panel creases on the belt -->
+  <g stroke="#000" stroke-opacity=".13" stroke-width="2" fill="none">
+    <path d="M-460 176 H1460"/><path d="M-460 200 H1460"/>
+  </g>
+
+  <g class="stG stBed">
+    <use href="#q1"/><use href="#q2"/><use href="#q3" class="st2"/><use href="#q4" class="st2"/>
+  </g>
+  <g class="stG stThread">
+    <use href="#q1"/><use href="#q2"/><use href="#q3" class="st2"/><use href="#q4" class="st2"/>
+  </g>
+
+  <!-- ==========================================================
+       HOLSTER — traced from Line Drawing/Mapped holster.png.
+       Do not hand-edit: regenerate with mockup/tools/trace-material-map.py,
+       which rewrites everything between these two markers.
+       The wrapper remaps the tracer's variable names onto the builder's.
+       ========================================================== -->
+  <!-- HOLSTER:BEGIN -->
+  <g id="holsterArt" transform="translate(338.6,300.0) scale(0.2309)"
+     style="--ink:#17110e;--rivet:var(--copper);--logo:var(--copper)">
+  <defs>
+    <path id="hl-p-mat-leather-base" d="M577 13 L577 13 Q498 11 492 15 L492 15 Q486 19 482 28 L482 28 Q478 36 476 50 L476 50 Q474 63 474 88 L474 88 Q474 114 472 116 L472 116 Q471 117 426 118 L426 118 Q380 118 376 116 L376 116 Q372 115 369 117 L369 117 Q366 119 359 119 L359 119 Q352 119 350 118 L350 118 Q348 116 344 118 L344 118 Q339 119 328 119 L328 119 Q318 119 312 121 L312 121 Q306 123 300 132 L300 132 Q293 141 289 160 L289 160 Q285 178 283 206 L283 206 Q281 234 281 286 L281 286 Q281 339 287 474 L287 474 Q293 610 292 612 L292 612 Q290 613 190 617 L190 617 Q91 621 81 623 L81 623 Q71 625 67 630 L67 630 Q63 634 62 646 L62 646 Q60 658 62 663 L62 663 Q64 668 62 678 L62 678 Q61 687 63 690 L65 694 L56 696 Q46 699 38 704 L38 704 Q30 709 24 717 L24 717 Q17 725 14 733 L14 733 Q11 741 12 754 L12 754 Q12 767 18 776 L23 785 L26 766 Q28 748 30 743 L30 743 Q32 738 36 734 L36 734 Q40 730 48 729 L48 729 Q57 728 62 732 L62 732 Q68 736 69 739 L69 739 Q70 742 69 774 L69 774 Q68 805 72 810 L72 810 Q76 815 80 888 L80 888 Q83 960 82 970 L82 970 Q80 980 87 1143 L87 1143 Q94 1306 92 1310 L92 1310 Q90 1313 90 1320 L90 1320 Q89 1326 90 1330 L90 1330 Q92 1334 91 1346 L91 1346 Q90 1357 92 1363 L92 1363 Q95 1369 95 1382 L95 1382 Q95 1395 98 1404 L98 1404 Q102 1412 108 1419 L108 1419 Q115 1426 134 1438 L134 1438 Q152 1449 170 1454 L170 1454 Q189 1460 228 1464 L228 1464 Q266 1467 268 1468 L268 1468 Q270 1470 272 1529 L272 1529 Q273 1588 276 1644 L276 1644 Q280 1700 285 1728 L285 1728 Q290 1755 295 1762 L295 1762 Q300 1768 318 1768 L318 1768 Q335 1769 338 1772 L338 1772 Q341 1774 344 1774 L344 1774 Q347 1773 349 1770 L349 1770 Q351 1768 354 1768 L354 1768 Q357 1768 361 1771 L361 1771 Q365 1774 368 1774 L368 1774 Q370 1774 374 1770 L374 1770 Q377 1767 621 1761 L621 1761 Q865 1755 880 1755 L880 1755 Q896 1755 899 1758 L899 1758 Q902 1761 905 1762 L905 1762 Q908 1762 912 1758 L917 1754 L922 1757 Q926 1760 930 1760 L930 1760 Q933 1760 937 1756 L937 1756 Q941 1753 955 1752 L955 1752 Q969 1752 973 1750 L973 1750 Q977 1748 980 1744 L980 1744 Q983 1740 989 1708 L989 1708 Q995 1675 1000 1613 L1000 1613 Q1004 1551 1004 1505 L1004 1505 Q1005 1459 1006 1458 L1006 1458 Q1008 1456 1036 1453 L1036 1453 Q1065 1450 1081 1446 L1081 1446 Q1097 1443 1112 1438 L1112 1438 Q1127 1433 1138 1427 L1138 1427 Q1150 1421 1162 1410 L1162 1410 Q1173 1398 1176 1389 L1176 1389 Q1180 1380 1180 1370 L1180 1370 Q1181 1359 1184 1352 L1184 1352 Q1188 1345 1186 1304 L1186 1304 Q1184 1264 1201 980 L1201 980 Q1218 696 1220 694 L1220 694 Q1222 691 1221 666 L1221 666 Q1220 642 1218 638 L1218 638 Q1216 633 1210 629 L1210 629 Q1204 625 1096 622 L1096 622 Q987 620 986 618 L986 618 Q984 617 985 582 L985 582 Q986 547 984 541 L984 541 Q983 535 984 504 L984 504 Q985 472 984 382 L984 382 Q982 293 980 289 L980 289 Q979 285 980 268 L980 268 Q981 251 976 198 L976 198 Q972 145 969 133 L969 133 Q966 121 962 115 L962 115 Q958 109 954 107 L954 107 Q949 105 938 106 L938 106 Q927 106 924 104 L924 104 Q921 102 914 104 L914 104 Q908 107 900 106 L900 106 Q892 104 884 106 L884 106 Q875 108 834 108 L834 108 Q792 109 790 108 L790 108 Q789 106 789 69 L789 69 Q789 32 786 26 L786 26 Q784 19 781 16 L781 16 Q778 13 774 12 L774 12 Q769 10 712 12 L712 12 Q656 15 577 13 Z"/>
+    <path id="hl-p-mat-leather-body" d="M68 628 L68 628 Q65 630 62 646 L62 646 Q60 662 62 665 L62 665 Q64 668 62 678 L62 678 Q61 687 64 692 L64 692 Q67 698 68 716 L68 716 Q70 733 69 769 L69 769 Q68 805 72 810 L72 810 Q76 815 80 888 L80 888 Q83 960 82 970 L82 970 Q80 980 87 1143 L87 1143 Q94 1306 92 1312 L92 1312 Q89 1318 90 1326 L90 1326 Q92 1334 91 1346 L91 1346 Q90 1357 92 1363 L92 1363 Q95 1369 94 1380 L94 1380 Q94 1390 96 1397 L96 1397 Q98 1404 101 1410 L101 1410 Q104 1415 114 1424 L114 1424 Q125 1434 138 1442 L138 1442 Q152 1449 170 1454 L170 1454 Q189 1460 228 1464 L228 1464 Q266 1467 268 1468 L270 1470 L272 1468 Q273 1467 296 1468 L296 1468 Q320 1470 321 1472 L322 1473 L324 1471 Q326 1469 334 1469 L334 1469 Q343 1469 346 1472 L349 1475 L352 1472 Q356 1470 468 1471 L468 1471 Q580 1472 689 1469 L689 1469 Q798 1466 874 1462 L874 1462 Q951 1458 954 1460 L958 1462 L960 1460 Q961 1458 1002 1456 L1002 1456 Q1044 1453 1074 1447 L1074 1447 Q1104 1441 1124 1432 L1124 1432 Q1145 1424 1158 1412 L1158 1412 Q1171 1401 1175 1392 L1175 1392 Q1179 1384 1180 1372 L1180 1372 Q1181 1359 1184 1352 L1184 1352 Q1188 1345 1186 1304 L1186 1304 Q1184 1264 1201 980 L1201 980 Q1218 696 1220 694 L1220 694 Q1222 691 1222 669 L1222 669 Q1221 647 1218 640 L1218 640 Q1216 633 1213 630 L1213 630 Q1210 627 1142 624 L1142 624 Q1073 621 1018 621 L1018 621 Q964 621 954 618 L954 618 Q945 615 942 617 L942 617 Q939 619 934 619 L934 619 Q928 619 923 616 L923 616 Q918 612 910 616 L910 616 Q901 620 886 618 L886 618 Q870 617 834 617 L798 617 L798 636 Q798 655 801 658 L804 662 L801 667 Q798 672 800 678 L800 678 Q802 684 800 688 L800 688 Q798 693 798 764 L798 764 Q799 835 796 863 L796 863 Q793 891 786 913 L786 913 Q780 935 770 953 L770 953 Q761 971 747 986 L747 986 Q733 1000 714 1011 L714 1011 Q695 1022 674 1027 L674 1027 Q654 1032 631 1030 L631 1030 Q608 1029 596 1026 L596 1026 Q585 1022 572 1016 L572 1016 Q558 1009 538 993 L538 993 Q519 977 509 961 L509 961 Q499 945 494 928 L494 928 Q488 910 486 891 L486 891 Q483 872 482 780 L482 780 Q481 687 478 684 L478 684 Q476 681 478 673 L478 673 Q480 665 478 662 L475 659 L478 655 Q480 651 479 632 L478 612 L423 612 Q368 613 362 610 L362 610 Q356 608 350 610 L350 610 Q344 612 340 609 L335 606 L330 609 Q325 612 208 616 L208 616 Q91 621 81 623 L81 623 Q71 625 68 628 Z"/>
+    <path id="hl-p-mat-leather-plate" d="M326 120 L326 120 Q313 120 306 125 L306 125 Q299 130 294 140 L294 140 Q290 150 287 168 L287 168 Q284 187 282 210 L282 210 Q281 234 281 286 L281 286 Q281 339 286 436 L286 436 Q291 533 292 572 L292 611 L308 611 Q325 611 329 608 L329 608 Q333 606 338 608 L338 608 Q344 611 352 610 L352 610 Q359 608 368 610 L368 610 Q376 613 428 612 L479 611 L473 115 L426 116 Q380 118 376 116 L376 116 Q372 115 369 117 L369 117 Q366 119 355 118 L355 118 Q344 116 342 118 L342 118 Q339 119 326 120 Z M958 110 L958 110 Q953 106 940 106 L940 106 Q927 106 923 104 L923 104 Q919 102 914 104 L914 104 Q908 107 900 106 L900 106 Q892 104 884 106 L884 106 Q875 108 833 108 L791 108 L794 360 Q797 611 800 614 L800 614 Q802 616 836 616 L836 616 Q870 616 886 618 L886 618 Q901 619 910 616 L910 616 Q920 612 924 615 L924 615 Q928 618 934 618 L934 618 Q939 618 941 616 L941 616 Q943 615 956 618 L956 618 Q969 621 976 620 L984 618 L985 582 Q986 547 984 541 L984 541 Q983 535 984 504 L984 504 Q985 472 984 382 L984 382 Q982 293 980 289 L980 289 Q979 285 980 268 L980 268 Q981 251 976 195 L976 195 Q971 139 967 127 L967 127 Q963 115 958 110 Z"/>
+    <path id="hl-p-mat-leather-sling" d="M1006 1458 L1006 1458 L793 1466 Q580 1473 468 1472 L468 1472 Q356 1471 352 1473 L348 1475 L346 1472 Q343 1470 334 1470 L334 1470 Q326 1470 324 1472 L324 1472 Q321 1473 313 1471 L313 1471 Q305 1469 289 1468 L289 1468 Q273 1468 272 1470 L272 1470 Q270 1471 274 1567 L274 1567 Q277 1663 280 1690 L280 1690 Q282 1717 286 1738 L286 1738 Q291 1758 297 1764 L297 1764 Q303 1769 319 1769 L319 1769 Q335 1769 340 1772 L345 1774 L348 1771 Q351 1768 354 1768 L354 1768 Q357 1768 361 1771 L361 1771 Q365 1774 368 1774 L368 1774 Q370 1774 374 1770 L374 1770 Q377 1767 636 1761 L636 1761 Q896 1755 899 1758 L899 1758 Q902 1761 905 1762 L905 1762 Q908 1762 912 1758 L917 1754 L922 1757 Q926 1760 930 1760 L930 1760 Q933 1760 937 1756 L937 1756 Q941 1753 956 1752 L956 1752 Q972 1751 976 1748 L976 1748 Q980 1745 982 1741 L982 1741 Q984 1737 990 1706 L990 1706 Q995 1675 999 1623 L999 1623 Q1003 1571 1004 1514 Z"/>
+    <path id="hl-p-mat-leather-strap" d="M64 695 L64 695 L55 697 Q46 699 40 702 L40 702 Q35 705 25 717 L25 717 Q15 729 12 742 L12 742 Q10 755 12 765 L12 765 Q15 775 19 780 L23 785 L25 769 Q27 753 30 746 L30 746 Q32 738 38 733 L38 733 Q45 728 51 728 L51 728 Q57 728 63 732 L69 736 Z M579 12 L579 12 Q502 10 498 12 L498 12 Q493 13 488 18 L488 18 Q484 22 480 31 L480 31 Q477 40 476 52 L476 52 Q474 63 478 357 L478 357 Q481 651 478 654 L475 658 L478 662 Q481 665 481 669 L481 669 Q481 673 478 676 L476 680 L479 684 Q482 687 482 760 L482 760 Q483 832 485 866 L485 866 Q487 899 490 912 L490 912 Q493 926 500 942 L500 942 Q507 959 514 968 L514 968 Q520 977 533 988 L533 988 Q546 1000 558 1008 L558 1008 Q571 1015 586 1020 L586 1020 Q600 1026 614 1028 L614 1028 Q628 1031 645 1030 L645 1030 Q662 1030 676 1026 L676 1026 Q690 1023 701 1018 L701 1018 Q712 1013 722 1006 L722 1006 Q733 999 742 990 L742 990 Q752 981 759 972 L759 972 Q766 962 772 948 L772 948 Q779 935 784 918 L784 918 Q790 900 792 886 L792 886 Q795 872 796 854 L796 854 Q798 835 798 764 L798 764 Q797 693 799 690 L799 690 Q801 686 799 679 L799 679 Q797 672 800 668 L804 663 L800 659 Q797 655 793 344 L793 344 Q789 32 786 26 L786 26 Q784 19 781 16 L781 16 Q778 13 774 12 L774 12 Q769 10 712 12 L712 12 Q656 15 579 12 Z M611 411 L611 411 Q613 408 638 408 L638 408 Q662 407 664 409 L664 409 Q667 411 667 441 L667 471 L659 475 L656 472 Q654 470 653 445 L652 420 L623 422 L623 446 Q623 470 620 472 L618 475 L610 471 L610 442 Q609 414 611 411 Z"/>
+    <path id="hl-p-mat-leather-strap-over" d="M638 408 L638 408 Q613 409 612 412 L612 412 Q610 414 610 442 L611 471 L618 474 L620 472 Q622 470 622 446 L622 446 Q622 422 624 420 L624 420 Q625 419 638 419 L638 419 Q652 419 654 420 L654 420 Q655 422 655 446 L655 446 Q655 470 657 472 L657 472 Q659 474 662 474 L664 473 L665 442 Q666 411 664 410 L664 410 Q662 408 638 408 Z"/>
+    <path id="hl-p-mat-thread" d="M334 1734 L334 1734 L328 1737 L328 1742 Q329 1747 332 1756 L332 1756 Q336 1765 335 1767 L334 1769 L338 1772 Q341 1774 343 1774 L343 1774 Q345 1774 348 1772 L350 1769 L348 1768 Q347 1766 342 1752 L342 1752 Q338 1739 336 1736 Z M944 1722 L944 1722 Q943 1720 941 1720 L941 1720 Q939 1721 938 1722 L938 1722 Q937 1724 936 1732 L936 1732 Q935 1740 930 1747 L930 1747 Q924 1754 922 1754 L920 1755 L923 1758 Q926 1760 930 1760 L930 1760 Q933 1760 938 1756 L938 1756 Q942 1753 942 1746 L942 1746 Q942 1739 944 1736 L944 1736 Q946 1733 946 1728 L946 1728 Q946 1723 944 1722 Z M327 1687 L327 1687 L325 1690 Q323 1692 322 1702 L322 1702 Q322 1711 322 1715 L322 1715 Q323 1719 324 1722 L324 1722 Q326 1726 329 1728 L332 1729 L334 1728 Q335 1726 334 1712 L334 1712 Q334 1699 332 1694 L332 1694 Q331 1688 329 1688 Z M950 1671 L950 1671 Q948 1670 947 1670 L947 1670 Q946 1670 944 1672 L944 1672 Q943 1673 942 1678 L942 1678 Q941 1683 940 1697 L940 1697 Q940 1711 942 1712 L943 1714 L946 1712 Q949 1711 951 1704 L951 1704 Q953 1698 953 1687 L953 1687 Q953 1676 952 1674 L952 1674 Q951 1672 950 1671 Z M322 1628 L322 1628 L320 1632 Q318 1635 318 1649 L318 1649 Q319 1663 321 1670 L321 1670 Q323 1678 326 1680 L329 1681 L330 1680 Q331 1679 330 1656 L330 1656 Q329 1634 328 1632 L328 1632 Q327 1629 324 1628 Z M950 1615 L950 1615 L948 1616 Q945 1618 944 1624 L944 1624 Q943 1629 943 1644 L943 1644 Q943 1660 945 1662 L947 1665 L950 1664 Q953 1662 954 1654 L954 1654 Q956 1646 955 1633 L955 1633 Q954 1620 952 1618 Z M323 1563 L323 1563 L321 1565 Q319 1567 318 1572 L318 1572 Q317 1578 317 1596 L317 1596 Q317 1615 320 1618 L320 1618 Q322 1622 324 1622 L324 1622 Q326 1622 328 1620 L328 1620 Q329 1618 328 1598 L328 1598 Q328 1577 327 1572 L327 1572 Q326 1566 324 1564 Z M955 1556 L955 1556 L949 1558 L948 1567 Q946 1576 946 1590 L946 1590 Q945 1603 946 1606 L946 1606 Q947 1608 949 1609 L951 1610 L953 1608 Q955 1607 956 1602 L956 1602 Q958 1598 958 1580 L958 1580 Q958 1562 956 1559 Z M960 1490 L960 1490 Q958 1488 956 1488 L956 1488 Q954 1488 953 1489 L953 1489 Q952 1490 951 1496 L951 1496 Q950 1501 950 1523 L950 1523 Q949 1545 951 1547 L951 1547 Q953 1549 954 1549 L954 1549 Q955 1549 957 1547 L957 1547 Q959 1545 960 1540 L960 1540 Q962 1535 962 1517 L962 1517 Q963 1499 962 1496 L962 1496 Q962 1493 960 1490 Z M322 1487 L322 1487 Q320 1487 318 1491 L318 1491 Q315 1495 315 1520 L315 1520 Q315 1546 316 1549 L316 1549 Q317 1552 319 1554 L319 1554 Q321 1555 322 1555 L322 1555 Q324 1555 326 1553 L326 1553 Q327 1551 328 1526 L328 1526 Q328 1501 327 1496 L327 1496 Q326 1490 324 1488 L324 1488 Q323 1487 322 1487 Z M958 1459 L958 1459 Q955 1459 954 1462 L954 1462 Q952 1464 952 1468 L952 1468 Q952 1471 953 1476 L954 1480 L958 1481 L960 1478 Q962 1475 962 1468 L962 1468 Q962 1461 961 1460 L961 1460 Q960 1459 958 1459 Z M505 1430 L505 1430 Q504 1432 505 1434 L505 1434 Q506 1435 508 1436 L508 1436 Q510 1437 514 1438 L514 1438 Q518 1438 541 1438 L541 1438 Q564 1438 572 1436 L572 1436 Q579 1435 580 1432 L582 1428 L580 1426 Q577 1425 546 1425 L546 1425 Q514 1425 510 1426 L510 1426 Q506 1427 505 1430 Z M420 1426 L420 1426 Q420 1428 422 1430 L422 1430 Q425 1433 432 1434 L432 1434 Q440 1435 462 1435 L462 1435 Q485 1435 488 1434 L488 1434 Q491 1433 492 1431 L494 1429 L492 1426 Q489 1424 483 1423 L483 1423 Q477 1422 452 1422 L452 1422 Q427 1422 424 1423 L424 1423 Q421 1424 420 1426 Z M668 1427 L668 1427 Q668 1426 666 1424 L666 1424 Q663 1421 648 1422 L648 1422 Q634 1422 616 1424 L616 1424 Q599 1427 597 1428 L595 1429 L595 1431 Q595 1433 596 1434 L596 1434 Q597 1436 599 1436 L599 1436 Q601 1437 614 1437 L614 1437 Q627 1437 645 1434 L645 1434 Q663 1432 666 1430 L666 1430 Q668 1428 668 1427 Z M340 1426 L340 1426 L341 1428 Q342 1429 345 1430 L345 1430 Q348 1432 366 1432 L366 1432 Q383 1433 394 1432 L394 1432 Q406 1431 408 1429 L408 1429 Q411 1427 411 1426 L411 1426 Q411 1424 410 1422 L410 1422 Q408 1421 404 1420 L404 1420 Q401 1419 384 1419 L384 1419 Q366 1419 356 1420 L356 1420 Q345 1421 342 1424 Z M675 1427 L675 1427 L677 1429 Q679 1431 707 1431 L707 1431 Q735 1431 742 1430 L742 1430 Q750 1429 752 1428 L752 1428 Q754 1426 754 1424 L754 1424 Q754 1423 752 1422 L752 1422 Q751 1420 747 1419 L747 1419 Q743 1418 724 1418 L724 1418 Q706 1418 694 1420 L694 1420 Q681 1421 679 1422 L679 1422 Q677 1423 676 1425 Z M262 1420 L262 1420 L265 1423 Q268 1426 278 1428 L278 1428 Q289 1430 304 1430 L304 1430 Q318 1430 321 1430 L321 1430 Q324 1429 326 1428 L326 1428 Q328 1427 329 1426 L330 1424 L328 1422 Q327 1420 324 1419 L324 1419 Q321 1418 304 1416 L304 1416 Q287 1415 276 1415 L276 1415 Q266 1415 264 1418 Z M842 1420 L842 1420 L840 1418 Q839 1416 834 1415 L834 1415 Q829 1414 817 1414 L817 1414 Q805 1415 788 1417 L788 1417 Q770 1419 768 1420 L768 1420 Q765 1421 764 1423 L764 1423 Q764 1425 766 1427 L766 1427 Q767 1429 770 1430 L770 1430 Q772 1430 788 1430 L788 1430 Q805 1430 822 1428 L822 1428 Q838 1426 840 1423 Z M919 1416 L919 1416 Q919 1414 917 1412 L917 1412 Q915 1410 906 1410 L906 1410 Q898 1410 877 1413 L877 1413 Q856 1416 854 1418 L852 1419 L853 1422 Q854 1424 856 1425 L856 1425 Q859 1426 872 1426 L872 1426 Q886 1426 900 1424 L900 1424 Q914 1421 916 1419 L916 1419 Q919 1417 919 1416 Z M195 1417 L195 1417 L198 1419 Q201 1421 204 1422 L204 1422 Q208 1423 218 1424 L218 1424 Q229 1425 239 1424 L239 1424 Q249 1423 251 1420 L253 1418 L251 1416 Q249 1413 230 1412 L230 1412 Q211 1410 204 1410 L204 1410 Q198 1411 197 1412 L197 1412 Q196 1412 196 1414 Z M1000 1410 L1000 1410 L998 1408 Q996 1405 994 1404 L994 1404 Q993 1404 987 1404 L987 1404 Q981 1404 958 1408 L958 1408 Q934 1411 932 1413 L932 1413 Q930 1415 930 1416 L930 1416 Q930 1417 932 1419 L932 1419 Q935 1421 940 1422 L940 1422 Q944 1422 956 1422 L956 1422 Q968 1421 981 1418 L981 1418 Q994 1416 996 1415 L996 1415 Q998 1414 999 1412 Z M1071 1404 L1071 1404 Q1071 1402 1070 1400 L1070 1400 Q1069 1399 1066 1398 L1066 1398 Q1062 1397 1052 1398 L1052 1398 Q1041 1399 1026 1402 L1026 1402 Q1012 1406 1011 1408 L1010 1411 L1012 1413 Q1015 1415 1029 1414 L1029 1414 Q1043 1414 1054 1412 L1054 1412 Q1066 1409 1068 1407 L1068 1407 Q1071 1405 1071 1404 Z M1125 1389 L1125 1389 Q1125 1387 1123 1386 L1123 1386 Q1121 1384 1118 1384 L1118 1384 Q1116 1384 1108 1386 L1108 1386 Q1100 1389 1090 1394 L1090 1394 Q1079 1398 1078 1400 L1078 1403 L1080 1404 Q1082 1406 1085 1406 L1085 1406 Q1088 1406 1101 1402 L1101 1402 Q1114 1399 1118 1397 L1118 1397 Q1122 1395 1124 1393 L1124 1393 Q1125 1391 1125 1389 Z M90 1351 L90 1351 L90 1356 Q91 1361 93 1365 L93 1365 Q95 1369 94 1372 L94 1375 L95 1375 Q96 1375 100 1378 L100 1378 Q103 1382 104 1382 L104 1382 Q106 1383 112 1390 L112 1390 Q118 1396 126 1400 L126 1400 Q133 1404 138 1404 L138 1404 Q143 1404 148 1408 L148 1408 Q153 1411 164 1414 L164 1414 Q174 1417 178 1418 L178 1418 Q182 1418 184 1418 L184 1418 Q186 1417 188 1416 L188 1416 Q189 1414 189 1412 L189 1412 Q189 1410 188 1409 L188 1409 Q187 1408 182 1406 L182 1406 Q177 1404 167 1402 L167 1402 Q157 1400 150 1400 L150 1400 Q144 1400 139 1396 L139 1396 Q134 1391 124 1386 L124 1386 Q115 1382 112 1380 L112 1380 Q110 1377 104 1368 L104 1368 Q99 1358 96 1354 L96 1354 Q92 1351 91 1351 Z M1187 1340 L1187 1340 L1186 1340 Q1185 1340 1179 1345 L1179 1345 Q1173 1350 1166 1359 L1166 1359 Q1159 1368 1156 1368 L1156 1368 Q1153 1368 1147 1371 L1147 1371 Q1141 1374 1138 1376 L1138 1376 Q1134 1379 1132 1382 L1129 1386 L1131 1388 Q1133 1389 1138 1388 L1138 1388 Q1144 1387 1150 1384 L1150 1384 Q1155 1381 1159 1376 L1159 1376 Q1163 1372 1165 1372 L1165 1372 Q1167 1372 1172 1368 L1172 1368 Q1177 1365 1179 1364 L1181 1364 L1181 1362 Q1181 1359 1184 1352 L1184 1352 Q1188 1345 1188 1342 Z M1223 670 L1223 670 Q1223 668 1222 666 L1222 666 Q1221 664 1214 664 L1214 664 Q1208 663 1204 664 L1204 664 Q1201 664 1198 666 L1198 666 Q1195 667 1194 667 L1194 667 Q1192 667 1190 666 L1190 666 Q1188 664 1184 664 L1184 664 Q1181 664 1174 666 L1174 666 Q1168 667 1164 669 L1161 671 L1157 668 Q1153 665 1135 666 L1135 666 Q1117 666 1116 666 L1116 666 Q1114 667 1112 669 L1111 671 L1112 673 Q1113 675 1116 676 L1116 676 Q1118 677 1132 678 L1132 678 Q1146 678 1150 677 L1150 677 Q1155 676 1158 674 L1158 674 Q1160 672 1162 672 L1162 672 Q1163 672 1167 674 L1167 674 Q1171 677 1178 676 L1178 676 Q1185 676 1188 674 L1188 674 Q1192 672 1194 672 L1194 672 Q1195 672 1197 674 L1197 674 Q1199 675 1210 676 L1210 676 Q1220 676 1222 674 L1222 674 Q1223 671 1223 670 Z M1036 668 L1036 668 Q1036 670 1036 672 L1036 672 Q1037 673 1040 674 L1040 674 Q1043 675 1066 676 L1066 676 Q1090 676 1096 675 L1096 675 Q1101 674 1102 672 L1102 672 Q1104 671 1104 670 L1104 670 Q1104 668 1102 666 L1102 666 Q1100 664 1096 663 L1096 663 Q1091 662 1078 662 L1078 662 Q1066 662 1053 664 L1053 664 Q1040 665 1038 666 L1038 666 Q1037 667 1036 668 Z M956 664 L956 664 Q955 665 955 667 L955 667 Q955 669 956 670 L956 670 Q958 672 964 673 L964 673 Q969 674 996 674 L996 674 Q1022 674 1024 673 L1024 673 Q1026 672 1027 670 L1027 670 Q1028 669 1028 667 L1028 667 Q1027 665 1024 664 L1024 664 Q1022 662 1012 661 L1012 661 Q1003 660 986 660 L986 660 Q968 661 963 662 L963 662 Q958 663 956 664 Z M865 662 L865 662 L866 668 L871 670 Q876 671 904 672 L904 672 Q932 672 936 671 L936 671 Q941 670 943 669 L943 669 Q945 668 946 666 L946 666 Q946 665 944 663 L944 663 Q943 661 940 660 L940 660 Q938 659 926 658 L926 658 Q915 657 893 658 L893 658 Q871 659 868 660 Z M798 658 L798 658 Q798 659 798 664 L799 669 L819 670 Q839 670 846 668 L846 668 Q852 667 854 666 L854 666 Q855 664 855 663 L855 663 Q855 662 854 660 L854 660 Q852 659 850 658 L850 658 Q847 657 832 656 L832 656 Q817 656 808 656 L808 656 Q799 657 798 658 Z M234 658 L234 658 L232 656 Q231 654 228 653 L228 653 Q225 652 218 652 L218 652 Q212 653 198 656 L198 656 Q185 658 180 660 L176 662 L176 663 Q176 664 178 666 L178 666 Q180 668 194 668 L194 668 Q208 667 218 666 L218 666 Q228 664 230 663 L230 663 Q232 662 233 660 Z M61 655 L61 655 Q60 658 60 660 L60 660 Q60 662 62 666 L62 666 Q64 669 68 669 L68 669 Q72 669 76 668 L76 668 Q80 666 82 666 L82 666 Q85 666 86 668 L86 668 Q88 669 91 670 L91 670 Q94 671 103 671 L103 671 Q112 671 114 670 L114 670 Q117 668 119 668 L119 668 Q121 668 124 670 L124 670 Q127 672 136 672 L136 672 Q144 673 151 672 L151 672 Q158 671 164 668 L170 665 L170 664 Q170 662 168 660 L168 660 Q165 658 146 660 L146 660 Q128 661 126 662 L126 662 Q123 664 120 664 L120 664 Q118 664 115 662 L115 662 Q112 660 102 660 L102 660 Q91 659 89 660 L89 660 Q87 662 84 662 L84 662 Q82 662 79 660 L79 660 Q76 657 72 656 L72 656 Q69 654 66 654 L66 654 Q64 654 63 653 L62 652 Z M480 660 L480 660 Q480 655 480 654 L479 652 L475 652 Q471 651 452 652 L452 652 Q434 652 425 654 L425 654 Q416 655 415 657 L414 659 L416 661 Q417 663 424 664 L424 664 Q430 665 452 665 L452 665 Q474 665 476 664 L479 664 Z M328 654 L328 654 Q325 656 325 658 L325 658 Q325 659 327 660 L327 660 Q329 662 340 663 L340 663 Q352 664 373 664 L373 664 Q394 663 398 662 L398 662 Q402 661 403 660 L403 660 Q404 659 404 656 L404 656 Q403 654 396 652 L396 652 Q390 650 368 650 L368 650 Q346 650 339 651 L339 651 Q332 652 328 654 Z M315 656 L315 656 L312 654 Q309 651 298 650 L298 650 Q286 650 269 652 L269 652 Q252 654 248 655 L248 655 Q245 656 244 658 L244 658 Q243 660 244 661 L244 661 Q244 662 247 663 L247 663 Q250 664 268 664 L268 664 Q285 665 298 664 L298 664 Q310 662 312 660 L312 660 Q314 659 314 658 Z M332 590 L332 590 Q331 590 330 591 L330 591 Q329 592 328 600 L328 600 Q328 607 330 609 L330 609 Q331 611 334 612 L334 612 Q337 612 339 611 L341 610 L341 606 Q341 603 339 598 L339 598 Q337 593 336 592 L336 592 Q334 590 332 590 Z M950 550 L950 550 Q948 548 946 548 L945 548 L944 551 Q942 554 942 562 L942 562 Q942 570 941 576 L941 576 Q940 583 940 593 L940 593 Q940 603 941 605 L941 605 Q942 607 944 608 L946 610 L948 606 Q951 603 952 596 L952 596 Q953 590 953 576 L953 576 Q953 561 952 556 L952 556 Q951 551 950 550 Z M331 532 L331 532 Q329 532 327 534 L327 534 Q325 537 324 548 L324 548 Q324 560 325 568 L325 568 Q326 575 328 578 L328 578 Q330 580 332 580 L332 580 Q333 580 335 578 L335 578 Q337 575 337 560 L337 560 Q337 545 336 540 L336 540 Q335 534 334 533 L334 533 Q333 532 331 532 Z M332 497 L332 497 L330 498 Q328 499 327 502 L327 502 Q326 504 326 512 L326 512 Q326 519 328 521 L331 523 L334 521 Q336 519 336 517 L336 517 Q337 515 337 508 L337 508 Q337 502 334 500 Z M946 483 L946 483 L944 486 Q942 490 942 512 L942 512 Q942 534 944 536 L944 536 Q945 539 947 540 L949 540 L951 538 Q953 535 954 522 L954 522 Q954 509 952 498 L952 498 Q951 487 950 486 L950 486 Q949 484 948 484 Z M942 366 L942 366 Q940 366 938 368 L938 368 Q936 370 936 380 L936 380 Q935 389 939 394 L939 394 Q943 398 945 398 L947 398 L947 385 Q947 372 945 369 L945 369 Q943 366 942 366 Z M324 354 L324 354 L322 357 Q320 360 320 380 L320 380 Q321 399 322 405 L322 405 Q323 411 326 414 L326 414 Q328 418 329 418 L329 418 Q330 418 332 416 L332 416 Q334 413 332 386 L332 386 Q331 360 330 358 L330 358 Q329 355 326 354 Z M941 304 L941 304 Q939 304 938 305 L938 305 Q936 306 935 309 L935 309 Q934 312 934 333 L934 333 Q935 354 936 356 L936 356 Q938 358 940 358 L943 359 L945 356 Q947 353 947 340 L947 340 Q947 327 946 318 L946 318 Q945 309 944 307 L944 307 Q943 305 941 304 Z M326 288 L326 288 Q324 288 322 290 L322 290 Q320 293 320 304 L320 304 Q319 316 320 328 L320 328 Q320 340 323 344 L326 347 L328 346 Q330 344 330 342 L330 342 Q331 341 331 318 L331 318 Q331 296 330 294 L330 294 Q330 291 328 290 L328 290 Q327 288 326 288 Z M935 243 L935 243 L934 245 Q932 247 932 250 L932 250 Q931 254 931 270 L931 270 Q931 286 932 290 L932 290 Q933 294 934 296 L934 296 Q936 297 938 298 L938 298 Q940 298 942 297 L942 297 Q943 296 944 294 L944 294 Q945 292 945 280 L945 280 Q945 267 944 257 L944 257 Q942 247 941 246 L941 246 Q940 244 938 244 Z M332 222 L332 222 Q330 219 328 219 L328 219 Q327 219 325 221 L325 221 Q323 223 322 233 L322 233 Q320 243 320 258 L320 258 Q320 274 322 278 L325 281 L327 280 Q329 280 330 274 L330 274 Q332 269 332 246 L332 246 Q333 224 332 222 Z M935 182 L935 182 Q933 182 931 184 L931 184 Q929 186 930 207 L930 207 Q930 228 932 232 L932 232 Q934 235 936 235 L936 235 Q939 235 940 234 L940 234 Q941 232 941 215 L941 215 Q941 198 940 192 L940 192 Q939 187 938 185 L938 185 Q937 183 935 182 Z M332 160 L332 160 L330 164 Q327 167 326 180 L326 180 Q324 192 324 199 L324 199 Q324 206 325 208 L325 208 Q326 210 328 211 L330 212 L332 210 Q334 207 336 192 L336 192 Q338 177 338 170 L338 170 Q338 163 338 162 L338 162 Q337 161 334 160 Z M927 130 L927 130 L925 132 Q923 135 924 148 L924 148 Q925 161 927 168 L927 168 Q929 174 932 175 L934 176 L936 174 Q937 172 938 170 L938 170 Q938 167 938 161 L938 161 Q937 155 935 146 L935 146 Q933 137 932 135 L932 135 Q931 133 929 132 Z M919 102 L919 102 L914 106 L918 114 Q921 121 924 124 L927 126 L928 124 Q930 123 930 118 L930 118 Q930 114 929 112 L929 112 Q928 111 928 108 L928 106 Z"/>
+    <path id="hl-p-mat-thread-2" d="M361 1747 L361 1747 L359 1750 Q357 1752 357 1760 L357 1760 Q357 1768 361 1771 L361 1771 Q365 1774 368 1774 L368 1774 Q370 1774 373 1771 L376 1768 L374 1767 Q372 1766 369 1758 L369 1758 Q366 1749 364 1748 Z M356 1706 L356 1706 Q354 1706 353 1709 L353 1709 Q352 1712 352 1723 L352 1723 Q353 1734 354 1737 L354 1737 Q356 1740 359 1742 L362 1743 L363 1742 Q364 1741 364 1729 L364 1729 Q363 1717 362 1712 L362 1712 Q361 1708 360 1706 L360 1706 Q358 1705 356 1706 Z M922 1704 L922 1704 Q921 1701 918 1701 L918 1701 Q916 1701 915 1702 L915 1702 Q914 1704 913 1716 L913 1716 Q912 1729 910 1736 L910 1736 Q908 1742 905 1748 L905 1748 Q902 1753 900 1754 L899 1756 L896 1755 L900 1758 Q904 1762 907 1762 L907 1762 Q910 1761 913 1758 L913 1758 Q916 1755 916 1752 L916 1752 Q917 1749 920 1745 L920 1745 Q922 1741 923 1737 L923 1737 Q924 1733 924 1720 L924 1720 Q924 1706 922 1704 Z M925 1654 L925 1654 Q923 1652 922 1652 L922 1652 Q921 1652 920 1654 L920 1654 Q918 1655 918 1658 L918 1658 Q917 1660 917 1676 L917 1676 Q917 1692 918 1694 L918 1694 Q920 1695 922 1694 L922 1694 Q924 1694 926 1692 L926 1692 Q927 1690 928 1682 L928 1682 Q930 1674 930 1667 L930 1667 Q929 1660 928 1658 L928 1658 Q927 1655 925 1654 Z M352 1650 L352 1650 L350 1651 Q349 1652 348 1654 L348 1654 Q347 1657 347 1669 L347 1669 Q347 1681 349 1689 L349 1689 Q351 1697 354 1698 L357 1699 L358 1698 Q360 1696 359 1678 L359 1678 Q358 1659 357 1656 L357 1656 Q356 1653 354 1652 Z M924 1592 L924 1592 L922 1594 Q920 1596 920 1603 L920 1603 Q919 1610 919 1627 L919 1627 Q919 1644 921 1646 L923 1647 L925 1646 Q927 1644 928 1642 L928 1642 Q929 1640 930 1628 L930 1628 Q931 1616 930 1608 L930 1608 Q930 1600 929 1598 L929 1598 Q928 1595 926 1594 Z M351 1584 L351 1584 Q349 1583 348 1584 L348 1584 Q346 1584 344 1586 L344 1586 Q343 1588 342 1598 L342 1598 Q342 1609 344 1625 L344 1625 Q347 1641 348 1642 L348 1642 Q350 1644 351 1644 L351 1644 Q352 1644 354 1642 L354 1642 Q356 1640 356 1617 L356 1617 Q355 1594 354 1590 L354 1590 Q353 1586 351 1584 Z M928 1534 L928 1534 L926 1534 Q925 1535 924 1538 L924 1538 Q923 1540 922 1550 L922 1550 Q921 1560 921 1572 L921 1572 Q921 1585 923 1586 L925 1588 L927 1586 Q929 1585 930 1583 L930 1583 Q931 1581 932 1572 L932 1572 Q933 1563 932 1551 L932 1551 Q932 1539 930 1536 Z M349 1512 L349 1512 L348 1512 Q346 1513 344 1516 L344 1516 Q343 1518 342 1522 L342 1522 Q342 1527 342 1546 L342 1546 Q342 1566 342 1570 L342 1570 Q343 1574 345 1576 L345 1576 Q347 1578 348 1578 L348 1578 Q349 1578 350 1576 L350 1576 Q352 1575 353 1560 L353 1560 Q354 1546 353 1530 L353 1530 Q352 1515 350 1514 Z M343 1470 L343 1470 L343 1484 Q343 1499 345 1502 L345 1502 Q347 1505 348 1505 L350 1505 L352 1501 Q354 1497 354 1484 L355 1471 Z M934 1469 L934 1469 Q932 1467 930 1467 L930 1467 Q929 1467 928 1468 L928 1468 Q927 1469 926 1474 L926 1474 Q925 1478 924 1497 L924 1497 Q924 1516 924 1520 L924 1520 Q925 1524 926 1526 L926 1526 Q928 1527 930 1526 L930 1526 Q932 1526 934 1524 L934 1524 Q935 1521 936 1514 L936 1514 Q937 1506 937 1494 L937 1494 Q937 1481 936 1476 L936 1476 Q935 1471 934 1469 Z M580 1404 L580 1404 Q580 1401 578 1400 L578 1400 Q575 1398 544 1399 L544 1399 Q514 1400 510 1402 L505 1403 L505 1405 Q505 1407 508 1409 L508 1409 Q510 1411 514 1412 L514 1412 Q517 1412 542 1412 L542 1412 Q567 1411 572 1410 L572 1410 Q578 1408 579 1407 L579 1407 Q580 1406 580 1404 Z M661 1400 L661 1400 L657 1398 Q653 1396 643 1396 L643 1396 Q633 1396 616 1398 L616 1398 Q599 1400 595 1402 L595 1402 Q591 1403 590 1404 L590 1404 Q590 1406 592 1408 L592 1408 Q594 1411 613 1411 L613 1411 Q632 1411 644 1410 L644 1410 Q657 1408 659 1406 L659 1406 Q661 1405 661 1402 Z M422 1404 L422 1404 L425 1406 Q428 1408 438 1409 L438 1409 Q447 1410 466 1410 L466 1410 Q485 1410 489 1409 L489 1409 Q493 1408 494 1407 L494 1407 Q495 1406 495 1404 L495 1404 Q495 1401 492 1400 L492 1400 Q490 1398 480 1397 L480 1397 Q470 1396 448 1396 L448 1396 Q427 1397 425 1398 L425 1398 Q423 1399 422 1402 Z M337 1402 L337 1402 L340 1404 Q342 1405 347 1406 L347 1406 Q352 1406 378 1406 L378 1406 Q404 1406 408 1404 L408 1404 Q413 1403 414 1401 L414 1399 L410 1396 Q406 1394 384 1394 L384 1394 Q363 1393 352 1394 L352 1394 Q341 1395 340 1396 L340 1396 Q339 1396 338 1399 Z M749 1398 L749 1398 L746 1396 Q744 1393 732 1392 L732 1392 Q720 1392 698 1394 L698 1394 Q677 1397 674 1398 L674 1398 Q672 1399 671 1402 L670 1404 L673 1406 Q676 1408 696 1408 L696 1408 Q715 1407 730 1405 L730 1405 Q744 1403 746 1402 L746 1402 Q748 1401 748 1400 Z M254 1393 L254 1393 Q254 1394 255 1396 L255 1396 Q256 1399 263 1400 L263 1400 Q270 1402 292 1402 L292 1402 Q313 1403 319 1402 L319 1402 Q325 1402 327 1400 L327 1400 Q329 1399 329 1397 L329 1397 Q329 1395 328 1394 L328 1394 Q327 1393 320 1392 L320 1392 Q313 1390 287 1390 L287 1390 Q261 1390 258 1391 L258 1391 Q255 1392 254 1393 Z M830 1396 L830 1396 L830 1394 Q829 1391 828 1390 L828 1390 Q826 1389 818 1388 L818 1388 Q811 1388 788 1391 L788 1391 Q764 1394 762 1395 L762 1395 Q760 1396 760 1398 L759 1401 L762 1402 Q764 1404 784 1404 L784 1404 Q804 1403 814 1402 L814 1402 Q825 1400 828 1398 Z M914 1388 L914 1388 L912 1386 Q911 1384 909 1384 L909 1384 Q907 1383 898 1383 L898 1383 Q889 1383 870 1386 L870 1386 Q850 1388 846 1390 L846 1390 Q841 1391 840 1393 L840 1393 Q840 1395 842 1397 L842 1397 Q843 1399 845 1400 L845 1400 Q847 1400 863 1400 L863 1400 Q879 1399 892 1397 L892 1397 Q906 1395 908 1394 L908 1394 Q911 1393 912 1390 Z M998 1384 L998 1384 L996 1382 Q993 1379 979 1379 L979 1379 Q965 1379 946 1381 L946 1381 Q927 1383 926 1384 L926 1384 Q924 1385 924 1386 L924 1386 Q924 1387 926 1390 L926 1390 Q928 1392 940 1393 L940 1393 Q951 1394 972 1392 L972 1392 Q992 1390 994 1389 L994 1389 Q996 1388 997 1386 Z M1084 1376 L1084 1376 L1082 1374 Q1079 1372 1072 1372 L1072 1372 Q1066 1372 1042 1376 L1042 1376 Q1017 1379 1012 1380 L1012 1380 Q1008 1382 1008 1384 L1007 1385 L1009 1387 Q1011 1389 1014 1390 L1014 1390 Q1017 1390 1030 1390 L1030 1390 Q1042 1389 1058 1386 L1058 1386 Q1075 1384 1078 1382 L1078 1382 Q1081 1381 1082 1378 Z M93 1307 L93 1307 L91 1312 Q89 1318 89 1322 L89 1322 Q89 1326 90 1330 L90 1330 Q92 1334 92 1338 L91 1341 L92 1342 Q94 1342 98 1348 L98 1348 Q101 1353 104 1354 L104 1354 Q106 1356 113 1363 L113 1363 Q120 1370 126 1373 L126 1373 Q132 1376 135 1376 L135 1376 Q138 1376 143 1380 L143 1380 Q148 1383 157 1386 L157 1386 Q166 1389 172 1390 L172 1390 Q178 1390 180 1389 L180 1389 Q183 1388 184 1387 L184 1386 L186 1386 Q187 1387 190 1390 L190 1390 Q194 1394 202 1396 L202 1396 Q210 1397 226 1397 L226 1397 Q242 1397 244 1396 L245 1395 L244 1392 Q244 1389 238 1387 L238 1387 Q233 1385 208 1385 L208 1385 Q184 1385 182 1382 L182 1382 Q180 1380 176 1378 L176 1378 Q172 1377 156 1374 L156 1374 Q140 1371 138 1368 L138 1368 Q135 1366 125 1361 L125 1361 Q115 1356 112 1353 L112 1353 Q109 1350 107 1346 L107 1346 Q105 1342 102 1338 L102 1338 Q98 1334 97 1324 L97 1324 Q96 1314 95 1313 L95 1313 Q94 1312 94 1310 Z M1184 1303 L1184 1303 L1182 1312 Q1179 1321 1167 1333 L1167 1333 Q1155 1345 1148 1351 L1148 1351 Q1140 1357 1134 1358 L1134 1358 Q1128 1358 1122 1360 L1122 1360 Q1117 1363 1108 1366 L1108 1366 Q1099 1368 1095 1370 L1095 1370 Q1091 1372 1090 1374 L1088 1376 L1090 1378 Q1091 1379 1093 1380 L1093 1380 Q1095 1380 1102 1379 L1102 1379 Q1109 1378 1118 1375 L1118 1375 Q1127 1372 1134 1368 L1134 1368 Q1140 1363 1143 1364 L1143 1364 Q1146 1364 1148 1363 L1148 1363 Q1151 1362 1158 1355 L1158 1355 Q1165 1348 1166 1348 L1166 1348 Q1168 1347 1176 1339 L1176 1339 Q1183 1331 1184 1331 L1186 1331 L1186 1329 Q1186 1327 1187 1326 L1187 1326 Q1188 1324 1188 1318 L1188 1318 Q1188 1311 1186 1307 Z M1071 693 L1071 693 L1072 695 Q1074 697 1094 699 L1094 699 Q1115 701 1130 701 L1130 701 Q1146 701 1148 700 L1148 700 Q1151 700 1154 698 L1154 698 Q1156 696 1156 694 L1156 694 Q1156 693 1153 691 L1153 691 Q1150 689 1134 688 L1134 688 Q1118 687 1097 688 L1097 688 Q1076 688 1074 690 Z M994 690 L994 690 Q993 692 994 694 L994 694 Q996 696 998 696 L998 696 Q1001 697 1022 698 L1022 698 Q1042 698 1050 697 L1050 697 Q1058 696 1060 695 L1060 695 Q1061 694 1062 692 L1062 692 Q1062 690 1060 688 L1060 688 Q1059 686 1058 686 L1058 686 Q1056 685 1034 685 L1034 685 Q1013 685 1004 686 L994 688 Z M1222 688 L1222 688 Q1222 686 1221 684 L1220 683 L1216 684 Q1213 686 1206 686 L1206 686 Q1200 687 1198 688 L1198 688 Q1195 690 1192 689 L1192 689 Q1189 688 1180 688 L1180 688 Q1170 689 1167 690 L1167 690 Q1164 691 1162 692 L1162 692 Q1161 694 1161 695 L1161 695 Q1161 696 1164 698 L1164 698 Q1166 700 1174 700 L1174 700 Q1181 700 1184 699 L1184 699 Q1188 698 1190 696 L1190 696 Q1192 695 1194 695 L1194 695 Q1196 695 1198 696 L1198 696 Q1201 698 1210 698 L1210 698 Q1218 697 1220 694 L1220 694 Q1222 691 1222 688 Z M919 686 L919 686 L924 686 Q929 687 938 690 L938 690 Q947 693 956 694 L956 694 Q965 695 972 695 L972 695 Q980 695 982 694 L982 694 Q983 694 984 692 L986 690 L984 688 Q982 685 979 684 L979 684 Q976 683 966 682 L966 682 Q955 680 940 680 L940 680 Q926 680 924 680 L924 680 Q921 681 920 684 Z M817 688 L817 688 L818 690 Q819 691 822 692 L822 692 Q824 693 841 694 L841 694 Q858 694 872 693 L872 693 Q885 692 888 690 L888 690 Q892 689 894 687 L895 685 L893 682 Q891 680 889 680 L889 680 Q887 679 870 678 L870 678 Q854 678 838 680 L838 680 Q821 683 819 686 Z M62 678 L62 678 Q61 679 61 683 L61 683 Q61 687 63 690 L63 690 Q65 692 64 694 L64 695 L65 694 Q66 693 72 692 L72 692 Q78 690 82 692 L82 692 Q86 695 88 696 L88 696 Q91 696 94 696 L94 696 Q98 695 100 693 L103 691 L106 693 Q109 695 114 696 L114 696 Q119 697 130 696 L130 696 Q140 696 145 694 L145 694 Q150 692 154 694 L154 694 Q157 695 161 696 L161 696 Q165 696 176 695 L176 695 Q186 694 196 691 L196 691 Q205 688 206 686 L206 686 Q207 683 206 682 L206 682 Q206 681 204 680 L204 680 Q201 679 196 679 L196 679 Q190 679 178 681 L178 681 Q167 683 160 686 L160 686 Q153 688 150 688 L150 688 Q148 688 146 686 L146 686 Q143 685 135 684 L135 684 Q127 684 119 685 L119 685 Q111 686 107 688 L103 690 L99 687 Q95 684 85 684 L85 684 Q75 684 70 680 L64 676 Z M460 677 L460 677 Q458 679 458 681 L458 681 Q459 683 462 684 L462 684 Q464 685 472 686 L480 686 L480 684 Q481 682 480 678 L480 675 L472 674 Q464 674 462 674 L462 674 Q461 675 460 677 Z M276 680 L276 680 Q277 678 275 676 L275 676 Q273 674 262 674 L262 674 Q251 674 236 676 L236 676 Q220 679 218 680 L218 680 Q215 681 214 683 L212 685 L215 688 Q218 690 230 690 L230 690 Q241 690 256 688 L256 688 Q271 685 274 684 L274 684 Q276 682 276 680 Z M385 678 L385 678 L389 680 Q393 682 413 684 L413 684 Q433 686 440 686 L440 686 Q447 685 449 684 L451 682 L450 680 Q450 677 448 676 L448 676 Q446 674 436 673 L436 673 Q426 672 408 672 L408 672 Q389 673 388 674 L388 674 Q386 675 386 676 Z M366 675 L366 675 L362 673 Q359 671 344 670 L344 670 Q329 670 311 672 L311 672 Q293 674 290 676 L290 676 Q286 677 286 678 L286 678 Q285 680 286 682 L286 682 Q286 683 288 684 L288 684 Q291 685 312 684 L312 684 Q333 684 342 683 L342 683 Q351 682 358 680 L358 680 Q365 678 366 676 Z M355 562 L355 562 L354 562 Q352 563 351 567 L351 567 Q350 571 350 584 L350 584 Q350 597 352 601 L352 601 Q354 605 354 607 L354 607 Q354 609 355 610 L355 610 Q356 611 358 611 L358 611 Q359 611 360 610 L361 609 L360 608 Q359 606 360 591 L360 591 Q361 576 360 572 L360 572 Q360 569 358 566 Z M924 531 L924 531 Q922 530 920 530 L918 531 L916 542 Q914 554 914 568 L914 568 Q914 583 916 587 L918 591 L915 594 Q912 598 912 606 L912 606 Q912 615 914 616 L914 616 Q917 618 920 617 L924 616 L924 608 Q923 601 920 596 L918 590 L920 588 Q923 586 924 584 L924 584 Q925 582 926 572 L926 572 Q928 561 928 548 L928 548 Q927 536 926 534 L926 534 Q925 532 924 531 Z M356 514 L356 514 Q353 513 350 514 L348 515 L348 526 Q348 537 349 544 L349 544 Q350 550 352 552 L352 552 Q353 554 354 554 L354 554 Q356 554 358 552 L358 552 Q359 550 359 532 L359 515 Z M927 499 L927 499 L924 499 Q922 499 919 501 L919 501 Q916 503 916 510 L916 510 Q916 518 918 520 L918 520 Q921 523 923 522 L923 522 Q925 522 926 519 L926 519 Q928 516 928 508 Z M916 345 L916 345 Q915 345 914 346 L914 346 Q912 348 912 364 L912 364 Q913 379 917 382 L921 384 L922 382 Q924 380 924 368 L924 368 Q924 357 922 352 L922 352 Q921 348 920 346 L920 346 Q918 345 916 345 Z M347 342 L347 342 L345 346 Q343 350 344 370 L344 370 Q345 389 347 394 L347 394 Q349 399 352 400 L352 400 Q354 400 356 398 L356 398 Q358 397 356 378 L356 378 Q355 358 354 352 L354 352 Q353 345 352 344 L352 344 Q350 342 348 342 Z M353 277 L353 277 Q351 274 350 274 L350 274 Q349 274 347 276 L347 276 Q345 278 344 286 L344 286 Q343 294 343 312 L343 312 Q343 331 345 333 L345 333 Q347 335 348 335 L348 335 Q350 335 352 334 L352 334 Q353 332 354 328 L354 328 Q355 324 355 302 L355 302 Q355 280 353 277 Z M911 221 L911 221 L908 224 Q906 226 906 246 L906 246 Q906 266 907 269 L907 269 Q908 272 910 274 L910 274 Q913 276 914 278 L914 278 Q914 279 911 282 L911 282 Q908 286 908 304 L908 304 Q908 323 910 330 L910 330 Q912 337 914 338 L914 338 Q915 340 916 340 L916 340 Q917 340 920 336 L920 336 Q922 333 922 314 L922 314 Q921 296 920 291 L920 291 Q919 286 918 284 L918 284 Q917 282 916 281 L916 281 Q914 280 914 278 L914 278 Q914 277 916 274 L916 274 Q919 271 919 257 L919 257 Q919 243 918 235 L918 235 Q916 227 914 224 Z M353 210 L353 210 L351 212 Q349 213 348 215 L348 215 Q347 217 346 225 L346 225 Q345 233 344 248 L344 248 Q344 264 346 266 L346 266 Q348 268 350 268 L350 268 Q353 267 354 265 L354 265 Q355 263 356 254 L356 254 Q357 245 358 232 L358 232 Q358 220 358 217 L358 217 Q357 214 355 212 Z M906 162 L906 162 L904 164 Q901 167 902 180 L902 180 Q902 194 904 203 L904 203 Q905 212 907 214 L907 214 Q909 217 910 217 L910 217 Q911 217 913 215 L913 215 Q915 213 916 211 L916 211 Q916 209 916 202 L916 202 Q916 196 914 182 L914 182 Q911 167 908 164 Z M361 152 L361 152 L358 154 Q355 157 352 165 L352 165 Q350 173 349 186 L349 186 Q348 200 350 202 L352 205 L355 204 Q358 203 360 199 L360 199 Q361 195 363 179 L363 179 Q365 163 364 159 L364 159 Q364 155 362 154 Z M350 118 L350 118 Q348 116 344 117 L344 117 Q340 118 336 130 L336 130 Q331 142 331 146 L331 146 Q331 149 332 150 L332 150 Q333 152 336 152 L336 152 Q338 152 340 148 L340 148 Q343 144 346 135 L346 135 Q349 126 349 124 L349 124 Q349 122 350 120 L352 119 Z M378 116 L378 116 Q376 115 374 115 L374 115 Q372 115 368 117 L364 119 L364 122 Q364 124 360 132 L360 132 Q357 139 358 142 L358 142 Q358 145 360 146 L362 148 L365 146 Q368 144 374 131 L381 118 Z M896 106 L896 106 Q892 104 890 106 L887 107 L888 108 Q889 109 894 130 L894 130 Q899 150 900 153 L900 153 Q902 156 904 157 L905 158 L907 156 Q909 154 910 152 L910 152 Q910 149 910 141 L910 141 Q909 133 905 122 L905 122 Q901 111 901 109 L901 107 Z"/>
+    <path id="hl-p-mat-rivet" d="M384 1266 L384 1266 Q376 1266 366 1270 L366 1270 Q355 1273 350 1276 L350 1276 Q345 1280 340 1285 L340 1285 Q336 1290 331 1300 L331 1300 Q326 1311 326 1323 L326 1323 Q325 1335 326 1340 L326 1340 Q328 1346 331 1352 L331 1352 Q334 1358 342 1366 L342 1366 Q350 1375 360 1380 L360 1380 Q369 1384 382 1384 L382 1384 Q395 1385 404 1382 L404 1382 Q414 1378 423 1370 L423 1370 Q432 1362 437 1352 L437 1352 Q442 1342 443 1335 L443 1335 Q444 1328 444 1322 L444 1322 Q443 1315 439 1304 L439 1304 Q435 1294 428 1286 L428 1286 Q422 1279 412 1274 L412 1274 Q401 1268 396 1267 L396 1267 Q392 1266 384 1266 Z M916 1260 L916 1260 Q905 1260 896 1263 L896 1263 Q886 1266 880 1270 L880 1270 Q873 1275 869 1280 L869 1280 Q865 1284 860 1294 L860 1294 Q855 1305 854 1317 L854 1317 Q854 1329 858 1339 L858 1339 Q861 1349 866 1355 L866 1355 Q870 1361 874 1364 L874 1364 Q877 1367 888 1372 L888 1372 Q898 1377 908 1378 L908 1378 Q918 1379 924 1378 L924 1378 Q929 1377 935 1374 L935 1374 Q941 1372 950 1365 L950 1365 Q958 1358 962 1353 L962 1353 Q965 1348 968 1342 L968 1342 Q970 1336 971 1325 L971 1325 Q972 1314 968 1302 L968 1302 Q964 1289 957 1281 L957 1281 Q950 1273 946 1270 L946 1270 Q943 1268 934 1264 L934 1264 Q926 1261 916 1260 Z M635 767 L635 767 Q623 767 611 770 L611 770 Q599 773 592 776 L592 776 Q585 780 576 786 L576 786 Q568 793 563 798 L563 798 Q558 804 552 815 L552 815 Q545 826 542 834 L542 834 Q540 841 539 846 L539 846 Q538 852 538 864 L538 864 Q538 875 540 884 L540 884 Q542 894 546 903 L546 903 Q550 912 554 918 L554 918 Q558 924 566 932 L566 932 Q574 940 582 945 L582 945 Q589 950 599 954 L599 954 Q609 958 616 960 L616 960 Q623 961 635 961 L635 961 Q647 961 652 960 L652 960 Q658 959 670 954 L670 954 Q681 950 688 945 L688 945 Q696 940 703 933 L703 933 Q710 926 714 920 L714 920 Q719 913 724 903 L724 903 Q728 893 730 883 L730 883 Q732 873 732 865 L732 865 Q732 857 730 848 L730 848 Q729 839 724 828 L724 828 Q720 816 714 807 L714 807 Q707 798 700 792 L700 792 Q693 785 686 781 L686 781 Q680 777 672 774 L672 774 Q663 770 655 768 L655 768 Q647 767 635 767 Z M916 688 L916 688 Q905 688 894 692 L894 692 Q884 697 876 704 L876 704 Q869 711 867 714 L867 714 Q865 717 862 726 L862 726 Q858 735 858 747 L858 747 Q858 759 860 764 L860 764 Q861 769 864 776 L864 776 Q868 782 874 788 L874 788 Q881 795 890 800 L890 800 Q899 804 903 805 L903 805 Q907 806 916 806 L916 806 Q925 806 931 804 L931 804 Q937 803 942 800 L942 800 Q947 798 956 790 L956 790 Q964 783 966 779 L966 779 Q969 775 972 766 L972 766 Q975 758 975 747 L975 747 Q975 736 972 726 L972 726 Q968 717 960 708 L960 708 Q953 700 948 698 L948 698 Q944 695 935 692 L935 692 Q926 689 916 688 Z M375 680 L375 680 Q369 680 355 684 L355 684 Q341 687 333 693 L333 693 Q325 699 321 704 L321 704 Q317 710 314 718 L314 718 Q311 725 310 737 L310 737 Q310 749 314 759 L314 759 Q317 769 322 775 L322 775 Q326 781 330 784 L330 784 Q334 788 344 792 L344 792 Q353 797 364 798 L364 798 Q376 799 388 795 L388 795 Q399 791 404 787 L404 787 Q410 783 414 779 L414 779 Q417 775 422 764 L422 764 Q427 753 428 742 L428 742 Q428 732 424 720 L424 720 Q420 709 413 701 L413 701 Q406 693 394 687 L394 687 Q381 681 375 680 Z M376 394 L376 394 Q369 395 359 398 L359 398 Q349 402 339 410 L339 410 Q329 419 324 432 L324 432 Q319 445 319 456 L319 456 Q319 468 325 482 L325 482 Q331 496 334 500 L334 500 Q338 503 343 506 L343 506 Q348 508 349 510 L349 510 Q350 512 354 512 L354 512 Q358 513 359 514 L359 514 Q360 516 366 517 L366 517 Q373 518 384 518 L384 518 Q394 517 406 511 L406 511 Q419 505 426 497 L426 497 Q433 489 436 484 L436 484 Q438 479 440 472 L440 472 Q442 464 442 454 L442 454 Q441 444 437 434 L437 434 Q433 424 424 414 L424 414 Q415 405 406 400 L406 400 Q396 396 390 395 L390 395 Q383 394 376 394 Z M898 380 L898 380 Q885 381 874 386 L874 386 Q862 392 856 398 L856 398 Q850 404 847 408 L847 408 Q844 413 840 424 L840 424 Q837 435 838 447 L838 447 Q839 459 841 464 L841 464 Q843 469 847 475 L847 475 Q851 481 860 488 L860 488 Q869 496 880 500 L880 500 Q890 503 903 502 L903 502 Q916 502 919 500 L919 500 Q922 498 924 498 L924 498 Q927 498 932 494 L932 494 Q936 490 939 489 L939 489 Q942 488 944 485 L944 485 Q947 482 952 474 L952 474 Q956 465 958 458 L958 458 Q960 452 960 440 L960 440 Q959 427 953 414 L953 414 Q947 401 945 400 L945 400 Q943 399 940 395 L940 395 Q936 391 930 388 L930 388 Q924 384 921 384 L921 384 Q918 384 915 382 L915 382 Q912 380 898 380 Z"/>
+    <path id="hl-p-mat-hardware" d="M51 729 L51 729 Q45 729 42 730 L42 730 Q40 731 36 736 L36 736 Q31 742 29 751 L29 751 Q27 760 26 771 L26 771 Q26 782 24 784 L23 787 L24 788 Q25 790 25 816 L25 816 Q25 843 26 868 L26 868 Q28 893 30 910 L30 910 Q32 928 36 945 L36 945 Q40 962 44 968 L44 968 Q47 974 50 976 L50 976 Q52 979 56 982 L56 982 Q61 984 65 984 L65 984 Q69 984 74 982 L74 982 Q79 980 80 976 L80 976 Q82 973 78 894 L78 894 Q75 815 74 812 L74 812 Q73 810 70 808 L70 808 Q68 806 67 802 L67 802 Q66 798 66 784 L66 784 Q66 769 68 756 L68 756 Q69 742 68 739 L68 739 Q67 736 65 734 L65 734 Q63 732 60 730 L60 730 Q57 729 51 729 Z M982 252 L982 252 L981 254 Q980 256 980 270 L980 270 Q980 285 982 289 L982 289 Q983 293 990 294 L990 294 Q997 296 1006 300 L1006 300 Q1014 304 1020 308 L1020 308 Q1025 312 1033 320 L1033 320 Q1041 328 1046 336 L1046 336 Q1052 344 1056 353 L1056 353 Q1060 362 1062 370 L1062 370 Q1064 378 1065 388 L1065 388 Q1066 397 1066 408 L1066 408 Q1065 418 1063 428 L1063 428 Q1061 437 1054 452 L1054 452 Q1047 466 1039 475 L1039 475 Q1031 484 1024 489 L1024 489 Q1018 494 1009 498 L1009 498 Q1000 503 992 504 L985 506 L984 520 Q984 535 984 540 L984 540 Q985 544 986 546 L987 547 L1000 544 Q1013 540 1026 534 L1026 534 Q1039 527 1046 522 L1046 522 Q1053 517 1066 504 L1066 504 Q1078 490 1084 478 L1084 478 Q1091 467 1095 456 L1095 456 Q1099 444 1102 430 L1102 430 Q1104 417 1104 402 L1104 402 Q1104 386 1101 370 L1101 370 Q1098 355 1094 346 L1094 346 Q1091 336 1086 326 L1086 326 Q1081 317 1074 308 L1074 308 Q1067 298 1058 290 L1058 290 Q1049 281 1041 276 L1041 276 Q1033 270 1024 266 L1024 266 Q1015 261 998 256 Z"/>
+    <path id="hl-p-mat-logo" d="M642 372 L642 372 Q629 371 618 374 L618 374 Q607 378 601 382 L601 382 Q595 386 590 391 L590 391 Q585 396 582 400 L582 400 Q579 405 576 414 L576 414 Q572 422 571 428 L571 428 Q570 433 570 440 L570 440 Q570 446 571 452 L571 452 Q572 457 576 466 L576 466 Q579 474 586 483 L586 483 Q594 492 599 496 L599 496 Q604 499 614 503 L614 503 Q623 507 636 508 L636 508 Q649 508 654 507 L654 507 Q658 506 665 503 L665 503 Q672 500 677 496 L677 496 Q682 493 687 488 L687 488 Q692 483 695 478 L695 478 Q698 474 702 466 L702 466 Q705 457 706 452 L706 452 Q707 447 707 439 L707 439 Q707 431 706 426 L706 426 Q705 421 702 414 L702 414 Q699 406 696 402 L696 402 Q694 398 688 392 L688 392 Q683 386 677 382 L677 382 Q671 378 663 375 L663 375 Q655 372 642 372 Z"/>
+  </defs>
+  <g id="hl-fills" class="fills" fill-rule="evenodd">
+    <g id="hl-mat-leather-base" class="lay-mat-leather-base"><use href="#hl-p-mat-leather-base" fill="var(--leather)"/></g>
+    <g id="hl-mat-leather-body" class="lay-mat-leather-body"><use href="#hl-p-mat-leather-body" fill="var(--leather)"/></g>
+    <g id="hl-mat-leather-plate" class="lay-mat-leather-plate"><use href="#hl-p-mat-leather-plate" fill="var(--leather)"/></g>
+    <g id="hl-mat-leather-sling" class="lay-mat-leather-sling"><use href="#hl-p-mat-leather-sling" fill="var(--leather)"/></g>
+    <g id="hl-mat-leather-strap" class="lay-mat-leather-strap"><use href="#hl-p-mat-leather-strap" fill="var(--leather)"/></g>
+    <g id="hl-mat-splatter" class="lay-splatter"><use href="#hl-p-mat-leather-base" fill="url(#splatHl) none"/></g>
+    <g id="hl-mat-thread" class="lay-mat-thread"><use href="#hl-p-mat-thread" fill="var(--stitch)"/></g>
+    <g id="hl-mat-rivet" class="lay-mat-rivet"><use href="#hl-p-mat-rivet" fill="var(--rivet)"/></g>
+    <g id="hl-mat-hardware" class="lay-mat-hardware"><use href="#hl-p-mat-hardware" fill="var(--hw)"/></g>
+    <g id="hl-mat-logo" class="lay-mat-logo"><use href="#hl-p-mat-logo" fill="var(--logo)"/></g>
+    <g id="hl-mat-leather-strap-over" class="lay-mat-leather-strap-over"><use href="#hl-p-mat-leather-strap-over" fill="var(--leather)"/></g>
+    <g id="hl-mat-thread-2" class="lay-mat-thread-2"><use href="#hl-p-mat-thread-2" fill="var(--stitch)"/></g>
+  </g>
+  <g id="hl-mat-outline" class="mat-outline" fill="none" stroke="var(--ink)"
+     stroke-linejoin="round" stroke-linecap="round">
+    <use class="ol-mat-leather-body" href="#hl-p-mat-leather-body" stroke-width="2.48"/>
+    <use class="ol-mat-leather-plate" href="#hl-p-mat-leather-plate" stroke-width="2.48"/>
+    <use class="ol-mat-leather-sling" href="#hl-p-mat-leather-sling" stroke-width="2.48"/>
+    <use class="ol-mat-leather-strap" href="#hl-p-mat-leather-strap" stroke-width="2.48"/>
+    <use class="ol-mat-leather-strap ol-mat-leather-strap-over" href="#hl-p-mat-leather-strap-over" stroke-width="2.48"/>
+    <use class="ol-mat-thread" href="#hl-p-mat-thread" stroke-width="0.99"/>
+    <use class="ol-mat-thread ol-mat-thread-2" href="#hl-p-mat-thread-2" stroke-width="0.99"/>
+    <use class="ol-mat-rivet" href="#hl-p-mat-rivet" stroke-width="2.20"/>
+    <use class="ol-mat-hardware" href="#hl-p-mat-hardware" stroke-width="2.20"/>
+    <use class="ol-mat-logo" href="#hl-p-mat-logo" stroke-width="1.76"/>
+    <path d="M577 13 L577 13 Q498 11 492 15 L492 15 Q486 19 482 28 L482 28 Q478 36 476 50 L476 50 Q474 63 474 88 L474 88 Q474 114 472 116 L472 116 Q471 117 426 118 L426 118 Q380 118 376 116 L376 116 Q372 115 369 117 L369 117 Q366 119 359 119 L359 119 Q352 119 350 118 L350 118 Q348 116 344 118 L344 118 Q339 119 328 119 L328 119 Q318 119 312 121 L312 121 Q306 123 300 132 L300 132 Q293 141 289 160 L289 160 Q285 178 283 206 L283 206 Q281 234 281 286 L281 286 Q281 339 287 474 L287 474 Q293 610 292 612 L292 612 Q290 613 190 617 L190 617 Q91 621 81 623 L81 623 Q71 625 67 630 L67 630 Q63 634 62 646 L62 646 Q60 658 62 663 L62 663 Q64 668 62 678 L62 678 Q61 687 63 690 L65 694 L56 696 Q46 699 38 704 L38 704 Q30 709 24 717 L24 717 Q17 725 14 733 L14 733 Q11 741 12 754 L12 754 Q12 767 18 778 L18 778 Q25 790 26 828 L26 828 Q26 867 32 910 L32 910 Q37 953 40 960 L40 960 Q43 968 49 974 L49 974 Q55 981 58 982 L58 982 Q61 984 70 982 L70 982 Q78 980 80 981 L80 981 Q82 982 88 1144 L88 1144 Q94 1306 92 1310 L92 1310 Q90 1313 90 1320 L90 1320 Q89 1326 90 1330 L90 1330 Q92 1334 91 1346 L91 1346 Q90 1357 92 1363 L92 1363 Q95 1369 95 1382 L95 1382 Q95 1395 98 1404 L98 1404 Q102 1412 108 1419 L108 1419 Q115 1426 134 1438 L134 1438 Q152 1449 170 1454 L170 1454 Q189 1460 228 1464 L228 1464 Q266 1467 268 1468 L268 1468 Q270 1470 272 1529 L272 1529 Q273 1588 276 1644 L276 1644 Q280 1700 285 1728 L285 1728 Q290 1755 295 1762 L295 1762 Q300 1768 318 1768 L318 1768 Q335 1769 338 1772 L338 1772 Q341 1774 344 1774 L344 1774 Q347 1773 349 1770 L349 1770 Q351 1768 354 1768 L354 1768 Q357 1768 361 1771 L361 1771 Q365 1774 368 1774 L368 1774 Q370 1774 374 1770 L374 1770 Q377 1767 621 1761 L621 1761 Q865 1755 880 1755 L880 1755 Q896 1755 899 1758 L899 1758 Q902 1761 905 1762 L905 1762 Q908 1762 912 1758 L917 1754 L922 1757 Q926 1760 930 1760 L930 1760 Q933 1760 937 1756 L937 1756 Q941 1753 955 1752 L955 1752 Q969 1752 973 1750 L973 1750 Q977 1748 980 1744 L980 1744 Q983 1740 989 1708 L989 1708 Q995 1675 1000 1613 L1000 1613 Q1004 1551 1004 1505 L1004 1505 Q1005 1459 1006 1458 L1006 1458 Q1008 1456 1036 1453 L1036 1453 Q1065 1450 1081 1446 L1081 1446 Q1097 1443 1112 1438 L1112 1438 Q1127 1433 1138 1427 L1138 1427 Q1150 1421 1162 1410 L1162 1410 Q1173 1398 1176 1389 L1176 1389 Q1180 1380 1180 1370 L1180 1370 Q1181 1359 1184 1352 L1184 1352 Q1188 1345 1186 1304 L1186 1304 Q1184 1264 1201 980 L1201 980 Q1218 696 1220 694 L1220 694 Q1222 691 1221 666 L1221 666 Q1220 642 1218 638 L1218 638 Q1216 633 1210 629 L1210 629 Q1204 625 1096 622 L1096 622 Q987 620 986 618 L986 618 Q984 617 984 583 L985 549 L1002 544 Q1018 538 1036 528 L1036 528 Q1053 517 1066 504 L1066 504 Q1078 490 1084 478 L1084 478 Q1091 467 1095 456 L1095 456 Q1099 444 1102 430 L1102 430 Q1104 417 1104 402 L1104 402 Q1104 386 1098 361 L1098 361 Q1091 336 1079 317 L1079 317 Q1067 298 1050 284 L1050 284 Q1033 270 1024 266 L1024 266 Q1015 261 1000 258 L1000 258 Q985 254 982 252 L982 252 Q980 250 976 198 L976 198 Q972 145 969 133 L969 133 Q966 121 962 115 L962 115 Q958 109 954 107 L954 107 Q949 105 938 106 L938 106 Q927 106 924 104 L924 104 Q921 102 914 104 L914 104 Q908 107 900 106 L900 106 Q892 104 884 106 L884 106 Q875 108 834 108 L834 108 Q792 109 790 108 L790 108 Q789 106 789 69 L789 69 Q789 32 786 26 L786 26 Q784 19 781 16 L781 16 Q778 13 774 12 L774 12 Q769 10 712 12 L712 12 Q656 15 577 13 Z M983 293 L983 293 L998 298 Q1014 304 1028 316 L1028 316 Q1041 328 1050 345 L1050 345 Q1060 362 1063 380 L1063 380 Q1066 397 1064 417 L1064 417 Q1061 437 1054 452 L1054 452 Q1047 466 1034 479 L1034 479 Q1021 492 1006 499 L1006 499 Q991 506 988 506 L985 505 L983 401 Q981 297 982 295 Z" stroke-width="3.30"/>
+  </g>
+  </g>
+  <!-- HOLSTER:END -->
+
+  <!-- The anti-sway is the traced material map too — strap, both trigger snaps,
+       both end frames and its rivets all come in together. Regenerated by
+       tools/trace-material-map.py; do not hand-edit between the markers. -->
+  <!-- ANTISWAY:BEGIN -->
+  <g id="antiswayArt" transform="translate(142.7,755.5) scale(0.4816)"
+     style="--ink:#17110e;--rivet:var(--copper)">
+  <defs>
+    <path id="as-p-mat-leather-base" d="M321 62 L321 62 Q316 67 316 144 L316 144 Q315 222 318 224 L318 224 Q321 226 342 226 L342 226 Q363 226 368 228 L368 228 Q373 229 614 230 L614 230 Q855 230 942 230 L942 230 Q1029 229 1050 228 L1050 228 Q1071 227 1079 224 L1087 222 L1087 144 Q1087 66 1085 63 L1085 63 Q1083 60 1080 59 L1080 59 Q1076 58 706 57 L706 57 Q336 56 331 57 L331 57 Q326 58 321 62 Z"/>
+    <path id="as-p-mat-leather-strap" d="M321 62 L321 62 Q316 67 316 144 L316 144 Q315 222 318 224 L318 224 Q321 226 342 226 L342 226 Q363 226 368 228 L368 228 Q373 229 614 230 L614 230 Q855 230 942 230 L942 230 Q1029 229 1050 228 L1050 228 Q1071 227 1079 224 L1087 222 L1087 144 Q1087 66 1085 63 L1085 63 Q1083 60 1080 59 L1080 59 Q1076 58 706 57 L706 57 Q336 56 331 57 L331 57 Q326 58 321 62 Z"/>
+    <path id="as-p-mat-thread" d="M899 217 L899 217 Q899 218 902 220 L902 220 Q904 222 914 222 L914 222 Q924 222 926 221 L926 221 Q929 220 930 218 L931 216 L930 214 Q928 213 916 213 L916 213 Q904 213 902 214 L902 214 Q901 214 900 215 L900 215 Q899 216 899 217 Z M814 217 L814 217 Q814 218 816 220 L816 220 Q819 222 826 222 L826 222 Q833 222 838 221 L844 220 L844 218 Q845 215 844 214 L844 214 Q843 213 831 213 L831 213 Q819 213 818 214 L818 214 Q816 214 815 215 L815 215 Q814 216 814 217 Z M728 217 L728 217 Q728 219 730 220 L730 220 Q731 222 741 222 L741 222 Q751 222 754 221 L754 221 Q758 220 758 220 L758 220 Q759 219 759 216 L759 214 L748 214 Q736 213 732 214 L732 214 Q729 215 728 217 Z M601 215 L601 215 L601 218 Q601 220 602 221 L602 221 Q603 222 614 222 L614 222 Q624 222 626 222 L626 222 Q629 221 630 220 L630 220 Q632 218 632 216 L631 214 L618 214 Q605 213 603 214 Z M516 217 L516 217 Q515 219 516 220 L516 220 Q518 222 520 222 L520 222 Q522 223 532 222 L532 222 Q543 221 545 218 L547 216 L546 215 Q546 214 545 214 L545 214 Q544 213 533 213 L533 213 Q522 213 519 214 L519 214 Q516 215 516 217 Z M429 218 L429 218 L432 220 Q434 222 442 222 L442 222 Q451 222 454 222 L454 222 Q458 221 460 220 L460 220 Q461 218 461 216 L461 216 Q461 215 460 214 L460 214 Q459 213 449 213 L449 213 Q439 213 434 214 L434 214 Q430 215 430 216 Z M1060 217 L1060 217 L1058 215 Q1057 213 1052 212 L1052 212 Q1048 212 1040 212 L1040 212 Q1032 213 1030 214 L1030 214 Q1028 216 1028 218 L1028 218 Q1028 219 1030 220 L1030 220 Q1031 222 1039 222 L1039 222 Q1047 222 1051 222 L1051 222 Q1055 221 1058 219 Z M1016 216 L1016 216 Q1016 215 1014 214 L1014 214 Q1012 212 1001 212 L1001 212 Q990 213 988 214 L985 215 L985 216 Q985 218 986 219 L986 219 Q986 220 988 221 L988 221 Q989 222 998 222 L998 222 Q1007 222 1010 222 L1010 222 Q1013 221 1014 220 L1014 220 Q1016 218 1016 216 Z M973 218 L973 218 Q974 216 974 215 L974 215 Q973 214 972 213 L972 213 Q970 212 958 212 L958 212 Q947 213 945 214 L945 214 Q943 215 942 216 L942 216 Q942 217 942 219 L942 219 Q943 221 945 222 L945 222 Q947 223 958 222 L958 222 Q968 221 970 220 L970 220 Q972 219 973 218 Z M888 214 L888 214 L885 213 Q882 212 873 212 L873 212 Q864 213 862 214 L862 214 Q860 214 858 216 L858 216 Q857 217 857 218 L857 218 Q857 220 858 221 L858 221 Q859 222 861 222 L861 222 Q863 223 874 222 L874 222 Q884 221 886 220 L886 220 Q888 218 888 216 Z M803 216 L803 216 L802 215 Q802 214 800 213 L800 213 Q798 212 787 212 L787 212 Q776 213 774 214 L774 214 Q772 216 772 218 L772 218 Q772 219 774 220 L774 220 Q775 222 782 222 L782 222 Q788 222 793 222 L793 222 Q798 221 799 220 L799 220 Q800 220 802 218 Z M718 218 L718 218 Q718 216 718 215 L718 215 Q717 214 716 214 L716 214 Q715 213 708 212 L708 212 Q702 212 702 212 L702 212 Q701 213 696 213 L696 213 Q691 213 690 214 L690 214 Q688 214 687 215 L687 215 Q686 216 686 217 L686 217 Q686 218 688 220 L688 220 Q690 222 696 222 L696 222 Q703 222 708 222 L708 222 Q714 221 716 220 L716 220 Q717 219 718 218 Z M675 216 L675 216 L674 214 Q672 212 660 212 L660 212 Q648 213 646 214 L646 214 Q644 215 644 217 L644 217 Q643 219 644 220 L644 220 Q646 222 654 222 L654 222 Q662 222 666 222 L666 222 Q670 221 671 220 L671 220 Q672 220 674 218 Z M558 218 L558 218 L560 220 Q562 222 570 222 L570 222 Q578 222 582 222 L582 222 Q586 221 588 219 L588 219 Q590 217 590 215 L590 215 Q589 213 588 212 L588 212 Q587 212 580 212 L580 212 Q573 212 568 212 L568 212 Q562 213 560 214 L560 214 Q559 215 558 216 Z M504 216 L504 216 Q504 215 502 214 L502 214 Q500 212 488 212 L488 212 Q477 213 475 214 L475 214 Q473 216 473 218 L473 218 Q473 219 474 220 L474 220 Q476 222 488 222 L488 222 Q500 221 502 220 L502 220 Q504 218 504 216 Z M387 219 L387 219 L388 220 Q390 222 392 222 L392 222 Q393 223 399 222 L399 222 Q405 221 410 221 L410 221 Q414 221 416 219 L416 219 Q419 217 419 216 L419 216 Q419 215 417 214 L417 214 Q415 212 408 212 L408 212 Q400 212 395 213 L395 213 Q390 214 388 216 Z M376 216 L376 216 Q375 214 371 213 L371 213 Q367 212 357 212 L357 212 Q347 213 346 214 L346 214 Q345 214 344 216 L344 219 L346 220 Q348 222 357 222 L357 222 Q366 222 370 222 L370 222 Q373 221 374 220 L374 220 Q376 218 376 216 Z M1006 69 L1006 69 Q1005 70 1006 72 L1006 72 Q1006 75 1008 76 L1008 76 Q1010 77 1021 76 L1021 76 Q1032 76 1034 74 L1034 74 Q1036 73 1036 72 L1036 72 Q1036 70 1036 69 L1036 69 Q1035 68 1034 68 L1034 68 Q1033 67 1024 67 L1024 67 Q1014 67 1010 68 L1010 68 Q1007 68 1006 69 Z M921 68 L921 68 Q919 70 919 72 L919 72 Q919 73 920 74 L920 74 Q922 76 924 76 L924 76 Q925 77 936 76 L936 76 Q947 76 949 74 L949 74 Q951 72 951 71 L951 71 Q951 70 950 68 L950 68 Q948 67 936 67 L936 67 Q923 67 921 68 Z M790 71 L790 71 Q790 73 792 74 L792 74 Q793 76 798 76 L798 76 Q802 77 810 76 L810 76 Q818 76 820 75 L820 75 Q821 74 822 72 L822 72 Q822 71 820 69 L820 69 Q819 67 808 67 L808 67 Q798 67 794 68 L794 68 Q791 69 790 71 Z M746 72 L746 72 L747 74 Q748 75 750 76 L750 76 Q751 77 759 77 L759 77 Q767 77 771 76 L771 76 Q775 76 777 74 L779 71 L778 70 Q778 69 776 68 L776 68 Q775 67 764 67 L764 67 Q752 67 750 68 L750 68 Q749 68 748 70 Z M557 72 L557 72 L558 73 Q558 74 560 76 L560 76 Q562 77 570 77 L570 77 Q579 77 582 76 L582 76 Q586 76 588 74 L588 74 Q589 73 589 71 L589 71 Q589 69 588 68 L588 68 Q587 67 576 67 L576 67 Q564 67 562 68 L562 68 Q560 68 558 70 Z M474 68 L474 68 Q472 70 472 72 L472 72 Q472 73 474 75 L474 75 Q477 77 488 76 L488 76 Q500 76 501 76 L501 76 Q502 75 503 74 L503 74 Q504 72 504 70 L504 70 Q503 68 502 68 L502 68 Q501 67 488 67 L488 67 Q476 67 474 68 Z M345 72 L345 72 Q345 73 346 74 L346 74 Q348 76 350 76 L350 76 Q351 77 362 76 L362 76 Q372 76 373 76 L373 76 Q374 75 375 72 L376 69 L374 68 Q373 67 362 67 L362 67 Q352 67 350 68 L350 68 Q347 68 346 69 L346 69 Q345 70 345 72 Z M993 69 L993 69 L991 68 Q989 66 979 66 L979 66 Q969 67 968 68 L968 68 Q966 69 964 69 L964 69 Q963 69 962 70 L962 70 Q961 71 961 72 L961 72 Q961 74 963 76 L963 76 Q965 77 973 77 L973 77 Q981 77 986 76 L986 76 Q990 75 991 74 L991 74 Q992 73 992 71 Z M907 71 L907 71 Q907 69 906 68 L906 68 Q904 66 891 67 L891 67 Q878 68 877 69 L877 69 Q876 70 876 72 L876 72 Q876 74 878 76 L878 76 Q880 77 888 77 L888 77 Q897 77 901 76 L901 76 Q905 75 906 74 L906 74 Q907 73 907 71 Z M865 69 L865 69 L862 68 Q860 66 850 66 L850 66 Q839 67 836 68 L836 68 Q834 69 834 72 L834 72 Q833 74 834 76 L834 76 Q836 77 846 76 L846 76 Q856 76 858 76 L858 76 Q861 75 862 74 L862 74 Q864 73 864 71 Z M727 70 L727 70 Q727 69 726 68 L726 68 Q725 67 723 66 L723 66 Q721 66 716 66 L716 66 Q712 66 706 67 L706 67 Q699 68 698 69 L698 69 Q696 70 696 72 L696 72 Q695 73 696 75 L696 75 Q698 77 708 76 L708 76 Q719 76 722 76 L722 76 Q724 75 726 74 L726 74 Q727 72 727 70 Z M643 72 L643 72 L644 74 Q646 76 648 76 L648 76 Q649 77 658 77 L658 77 Q666 77 669 76 L669 76 Q672 76 674 75 L674 75 Q675 74 676 73 L676 73 Q676 72 675 70 L675 70 Q674 68 670 67 L670 67 Q666 66 658 66 L658 66 Q649 67 648 68 L648 68 Q646 68 644 70 Z M601 72 L601 72 Q601 73 604 75 L604 75 Q606 77 615 76 L615 76 Q624 76 626 76 L626 76 Q629 75 631 73 L631 73 Q633 71 633 70 L633 70 Q633 69 632 68 L632 68 Q630 66 618 66 L618 66 Q607 67 606 68 L606 68 Q604 68 602 70 L602 70 Q601 71 601 72 Z M515 72 L515 72 L516 73 Q516 74 518 76 L518 76 Q520 77 530 76 L530 76 Q540 76 542 76 L542 76 Q544 75 546 74 L546 74 Q547 72 546 70 L546 70 Q546 67 545 66 L545 66 Q544 66 534 66 L534 66 Q524 66 521 67 L521 67 Q518 68 516 70 Z M462 72 L462 72 L462 70 Q461 67 460 66 L460 66 Q458 66 448 66 L448 66 Q439 67 436 68 L436 68 Q434 68 432 70 L432 70 Q430 71 430 72 L430 72 Q430 73 432 75 L432 75 Q434 77 445 76 L445 76 Q456 76 459 74 Z M420 71 L420 71 L418 69 Q417 67 416 66 L416 66 Q414 66 404 66 L404 66 Q393 67 391 68 L391 68 Q389 69 388 72 L388 72 Q388 74 388 75 L388 75 Q389 76 390 76 L390 76 Q391 77 402 76 L402 76 Q414 76 417 74 Z"/>
+    <path id="as-p-mat-thread-2" d="M1071 199 L1071 199 L1068 198 Q1066 197 1057 198 L1057 198 Q1048 198 1045 198 L1045 198 Q1042 199 1040 202 L1039 204 L1042 206 Q1044 208 1052 208 L1052 208 Q1059 208 1062 208 L1062 208 Q1065 207 1068 206 L1071 204 Z M1028 200 L1028 200 Q1028 198 1027 198 L1027 198 Q1026 197 1015 198 L1015 198 Q1004 198 1001 199 L1001 199 Q998 200 997 201 L997 201 Q996 202 996 204 L996 204 Q997 206 998 207 L998 207 Q1000 208 1008 208 L1008 208 Q1015 208 1019 208 L1019 208 Q1023 207 1025 206 L1025 206 Q1027 205 1028 204 L1028 204 Q1029 202 1028 200 Z M954 202 L954 202 Q953 205 954 206 L954 206 Q956 208 964 208 L964 208 Q972 208 978 207 L978 207 Q983 206 984 204 L984 204 Q986 203 986 201 L986 201 Q985 199 984 198 L984 198 Q982 197 975 197 L975 197 Q968 197 961 198 L954 200 Z M942 202 L942 202 Q942 200 940 198 L940 198 Q939 197 932 197 L932 197 Q926 197 920 198 L920 198 Q913 199 911 200 L909 201 L909 202 Q909 204 910 205 L910 205 Q910 206 912 207 L912 207 Q913 208 924 208 L924 208 Q936 207 938 206 L938 206 Q941 204 942 202 Z M898 200 L898 200 Q898 198 897 198 L897 198 Q896 197 886 198 L886 198 Q875 198 872 198 L872 198 Q869 199 868 200 L868 200 Q866 202 866 204 L866 204 Q867 206 868 207 L868 207 Q870 208 878 208 L878 208 Q886 208 892 206 L892 206 Q897 205 898 204 L898 204 Q899 202 898 200 Z M856 201 L856 201 Q855 199 854 198 L854 198 Q852 197 840 198 L840 198 Q829 198 826 200 L823 201 L823 204 Q823 206 824 207 L824 207 Q826 208 838 208 L838 208 Q850 207 852 206 L852 206 Q853 206 854 204 L854 204 Q856 203 856 201 Z M812 202 L812 202 Q812 200 810 198 L810 198 Q809 197 798 198 L798 198 Q788 198 784 199 L780 200 L780 202 Q779 205 780 206 L780 206 Q782 208 794 208 L794 208 Q806 207 808 206 L808 206 Q811 204 812 202 Z M768 202 L768 202 Q768 200 766 198 L766 198 Q765 197 753 198 L753 198 Q741 198 740 198 L740 198 Q738 199 736 200 L736 200 Q735 202 736 204 L736 204 Q736 206 738 207 L738 207 Q739 208 748 208 L748 208 Q758 208 762 206 L762 206 Q767 205 768 202 Z M692 205 L692 205 L694 206 Q696 208 704 208 L704 208 Q713 208 716 208 L716 208 Q719 207 721 206 L721 206 Q723 205 724 204 L724 204 Q725 203 725 202 L725 202 Q725 200 723 198 L723 198 Q721 197 710 198 L710 198 Q699 198 696 199 L696 199 Q693 200 692 202 Z M681 202 L681 202 Q681 200 680 198 L680 198 Q678 197 668 198 L668 198 Q657 198 653 200 L649 201 L649 203 Q649 205 650 206 L650 206 Q652 208 664 208 L664 208 Q675 207 676 206 L676 206 Q678 206 680 204 L680 204 Q681 203 681 202 Z M638 202 L638 202 Q638 200 636 198 L636 198 Q635 197 624 198 L624 198 Q612 198 609 199 L609 199 Q606 200 606 202 L605 204 L608 206 Q610 208 618 208 L618 208 Q626 208 630 207 L630 207 Q635 206 636 204 L636 204 Q638 203 638 202 Z M562 204 L562 204 Q562 205 564 206 L564 206 Q566 208 578 208 L578 208 Q590 207 592 204 L592 204 Q595 202 594 200 L594 200 Q594 198 593 198 L593 198 Q592 197 580 198 L580 198 Q569 198 567 198 L567 198 Q565 199 564 200 L564 200 Q562 202 562 204 Z M551 202 L551 202 Q551 200 550 198 L550 198 Q548 197 536 198 L536 198 Q525 198 522 199 L522 199 Q520 200 519 201 L519 201 Q518 202 518 204 L518 204 Q519 206 520 207 L520 207 Q522 208 534 208 L534 208 Q546 207 548 205 L548 205 Q551 203 551 202 Z M508 199 L508 199 L506 198 Q505 197 493 198 L493 198 Q481 198 479 199 L479 199 Q477 200 476 201 L476 201 Q475 202 476 204 L476 204 Q476 206 478 207 L478 207 Q479 208 491 208 L491 208 Q503 207 504 206 L504 206 Q505 206 506 202 Z M464 202 L464 202 Q465 200 464 198 L464 198 Q462 197 452 198 L452 198 Q442 198 438 199 L438 199 Q434 200 433 202 L433 202 Q432 203 432 204 L432 204 Q432 205 434 206 L434 206 Q435 208 444 208 L444 208 Q454 208 458 207 L458 207 Q462 206 463 205 L463 205 Q464 204 464 202 Z M421 199 L421 199 L420 198 Q418 197 408 198 L408 198 Q397 198 393 200 L393 200 Q389 201 388 202 L388 204 L390 206 Q392 208 404 208 L404 208 Q416 207 417 206 L417 206 Q418 206 420 202 Z M378 202 L378 202 Q378 200 376 198 L376 198 Q375 197 368 197 L368 197 Q361 197 358 198 L358 198 Q354 199 351 199 L351 199 Q348 199 346 200 L346 200 Q345 201 344 202 L344 204 L346 206 Q349 208 361 208 L361 208 Q373 207 376 205 L376 205 Q378 203 378 202 Z M1014 88 L1014 88 L1016 90 Q1019 92 1025 92 L1025 92 Q1031 92 1036 91 L1036 91 Q1042 90 1044 88 L1047 86 L1046 84 Q1046 82 1045 82 L1045 82 Q1044 81 1034 81 L1034 81 Q1025 81 1022 82 L1022 82 Q1018 82 1016 83 L1016 83 Q1015 84 1014 86 Z M971 86 L971 86 Q971 89 973 90 L973 90 Q975 92 986 92 L986 92 Q997 91 999 90 L999 90 Q1001 89 1002 88 L1002 88 Q1004 86 1004 84 L1004 84 Q1003 82 1002 82 L1002 82 Q1001 81 988 82 L988 82 Q975 82 973 83 L971 84 Z M927 88 L927 88 L930 90 Q932 92 938 92 L938 92 Q943 92 950 91 L950 91 Q956 90 958 88 L960 87 L960 84 Q959 82 958 82 L958 82 Q957 81 948 81 L948 81 Q938 81 935 82 L935 82 Q932 82 930 83 L930 83 Q928 84 928 86 Z M883 86 L883 86 Q883 88 885 90 L885 90 Q887 92 894 92 L894 92 Q900 92 906 91 L906 91 Q912 90 914 88 L914 88 Q916 87 916 86 L917 84 L916 82 Q914 81 901 82 L901 82 Q888 82 886 84 L886 84 Q883 85 883 86 Z M840 86 L840 86 Q840 88 840 89 L840 89 Q841 90 842 91 L842 91 Q844 92 854 92 L854 92 Q865 91 867 90 L867 90 Q869 90 871 88 L871 88 Q873 86 872 84 L872 82 L864 82 Q856 81 851 82 L851 82 Q846 82 844 83 L844 83 Q841 84 840 86 Z M796 85 L796 85 L796 87 Q797 89 800 90 L800 90 Q802 92 811 92 L811 92 Q820 91 822 90 L822 90 Q825 90 827 88 L827 88 Q829 87 829 86 L829 86 Q829 84 828 82 L828 82 Q826 81 814 82 L814 82 Q801 82 798 84 Z M703 84 L703 84 L703 86 Q703 89 706 90 L706 90 Q708 92 718 92 L718 92 Q727 91 730 90 L730 90 Q732 90 734 88 L734 88 Q736 87 736 86 L736 86 Q736 84 734 82 L734 82 Q733 81 724 81 L724 81 Q716 81 710 82 Z M650 88 L650 88 L652 90 Q654 92 661 92 L661 92 Q668 92 674 91 L674 91 Q680 90 682 88 L682 88 Q684 86 684 85 L684 85 Q684 84 682 82 L682 82 Q680 81 668 82 L668 82 Q655 82 653 84 L653 84 Q651 85 650 86 Z M607 87 L607 87 Q607 88 610 90 L610 90 Q612 92 622 92 L622 92 Q632 91 635 90 L635 90 Q638 89 639 88 L639 88 Q640 86 640 85 L640 85 Q640 84 638 82 L638 82 Q636 81 627 81 L627 81 Q618 81 614 82 L614 82 Q609 83 608 84 L608 84 Q607 86 607 87 Z M519 86 L519 86 Q519 88 522 90 L522 90 Q524 92 534 92 L534 92 Q544 91 547 90 L547 90 Q550 89 551 88 L551 88 Q552 86 552 84 L552 84 Q552 83 551 82 L551 82 Q550 81 540 81 L540 81 Q531 81 526 82 L526 82 Q521 83 520 84 L520 84 Q519 85 519 86 Z M476 86 L476 86 Q475 87 477 90 L477 90 Q479 92 490 92 L490 92 Q501 91 504 90 L504 90 Q506 89 507 88 L507 88 Q508 87 508 85 L508 85 Q508 83 507 82 L507 82 Q506 81 497 81 L497 81 Q488 81 484 82 L484 82 Q480 82 478 83 L478 83 Q476 84 476 86 Z M344 88 L344 88 L346 90 Q349 92 359 92 L359 92 Q369 91 372 90 L372 90 Q375 89 376 86 L377 83 L376 82 Q374 81 362 82 L362 82 Q349 82 347 83 L347 83 Q345 84 344 86 Z M786 85 L786 85 L786 84 Q785 83 783 82 L783 82 Q781 80 772 80 L772 80 Q764 81 760 82 L760 82 Q755 83 754 84 L754 84 Q753 85 753 86 L753 86 Q753 88 755 90 L755 90 Q757 92 762 92 L762 92 Q767 92 774 91 L774 91 Q781 90 782 90 L782 90 Q783 89 784 87 Z M595 84 L595 84 Q595 82 594 81 L594 81 Q592 80 580 81 L580 81 Q567 82 566 83 L566 83 Q564 84 564 86 L564 86 Q563 88 564 89 L564 89 Q564 90 566 91 L566 91 Q568 92 579 92 L579 92 Q590 91 592 89 L592 89 Q595 87 595 84 Z M464 86 L464 86 Q465 84 464 82 L464 82 Q462 81 459 80 L459 80 Q456 80 448 80 L448 80 Q441 81 438 82 L438 82 Q434 83 433 84 L433 84 Q432 85 432 86 L432 86 Q432 88 434 90 L434 90 Q436 92 446 92 L446 92 Q455 91 458 90 L458 90 Q461 90 462 89 L462 89 Q464 88 464 86 Z M422 84 L422 84 L420 82 Q419 81 414 80 L414 80 Q410 80 400 82 L400 82 Q391 83 390 84 L390 84 Q389 84 388 86 L388 86 Q388 88 390 90 L390 90 Q392 92 399 92 L399 92 Q406 92 412 91 L412 91 Q417 90 419 88 L419 88 Q421 87 422 86 Z"/>
+    <path id="as-p-mat-rivet" d="M484 104 L484 104 Q473 104 466 108 L466 108 Q458 112 453 118 L453 118 Q448 123 446 130 L446 130 Q443 138 444 147 L444 147 Q444 156 448 164 L448 164 Q453 172 459 176 L459 176 Q465 181 472 183 L472 183 Q478 185 487 184 L487 184 Q496 184 504 180 L504 180 Q512 175 516 170 L516 170 Q520 165 522 158 L522 158 Q525 151 524 142 L524 142 Q524 133 520 126 L520 126 Q517 119 512 114 L512 114 Q508 110 502 107 L502 107 Q495 104 484 104 Z"/>
+    <path id="as-p-mat-rivet-2" d="M816 103 L816 103 Q808 103 800 106 L800 106 Q792 110 786 116 L786 116 Q781 122 778 128 L778 128 Q776 134 776 143 L776 143 Q775 152 778 160 L778 160 Q781 167 788 174 L788 174 Q795 180 804 183 L804 183 Q814 186 820 186 L820 186 Q826 185 832 183 L832 183 Q837 181 844 174 L844 174 Q851 168 854 162 L854 162 Q857 155 857 144 L857 144 Q857 134 854 126 L854 126 Q850 119 844 114 L844 114 Q837 108 830 106 L830 106 Q824 103 816 103 Z"/>
+    <path id="as-p-mat-frame-l" d="M296 26 L296 26 Q284 27 270 36 L270 36 Q257 44 252 52 L252 52 Q247 60 244 68 L244 68 Q241 77 240 92 L240 92 Q238 106 236 108 L235 109 L236 110 Q238 112 238 140 L238 140 Q238 168 236 170 L235 171 L236 173 Q238 175 240 194 L240 194 Q242 213 248 224 L248 224 Q253 234 258 240 L258 240 Q264 245 272 250 L272 250 Q279 254 306 256 L306 256 Q334 257 346 256 L346 256 Q357 255 362 252 L362 252 Q368 248 371 239 L374 230 L368 228 Q363 227 342 227 L342 227 Q321 227 320 225 L320 225 Q318 223 308 224 L308 224 Q298 224 293 222 L293 222 Q288 220 284 214 L284 214 Q280 209 280 187 L280 187 Q280 165 278 158 L278 158 Q277 151 278 136 L278 136 Q280 120 279 100 L279 100 Q278 80 280 74 L280 74 Q282 67 288 62 L288 62 Q294 58 308 58 L322 58 L320 62 L324 59 Q328 56 332 56 L332 56 Q336 55 356 56 L376 56 L374 48 Q372 41 368 36 L368 36 Q365 31 357 28 L357 28 Q349 25 329 24 L329 24 Q309 24 296 26 Z"/>
+    <path id="as-p-mat-frame-r" d="M1182 107 L1182 107 L1176 108 Q1171 108 1170 106 L1170 106 Q1168 105 1164 83 L1164 83 Q1160 61 1152 50 L1152 50 Q1144 38 1134 33 L1134 33 Q1124 28 1112 26 L1112 26 Q1099 25 1076 26 L1076 26 Q1052 28 1046 32 L1046 32 Q1040 36 1036 46 L1031 57 L378 57 L746 58 Q1113 58 1120 65 L1120 65 Q1126 72 1127 84 L1127 84 Q1128 97 1127 104 L1127 104 Q1126 111 1124 112 L1122 114 L1124 114 Q1127 114 1129 116 L1129 116 Q1131 118 1132 126 L1132 126 Q1134 133 1132 147 L1132 147 Q1131 161 1130 162 L1130 162 Q1128 164 1124 164 L1124 164 Q1119 164 1116 160 L1112 157 L1114 160 Q1117 164 1122 166 L1122 166 Q1126 168 1127 173 L1127 173 Q1128 178 1128 191 L1128 191 Q1128 204 1124 212 L1124 212 Q1119 219 1112 222 L1112 222 Q1105 224 1095 224 L1095 224 Q1085 223 1082 225 L1082 225 Q1079 227 1054 228 L1054 228 Q1029 230 942 230 L856 230 L1026 230 L1030 238 Q1033 247 1041 252 L1041 252 Q1049 256 1087 255 L1087 255 Q1125 254 1137 246 L1137 246 Q1149 238 1156 226 L1156 226 Q1163 214 1166 193 L1166 193 Q1168 172 1170 170 L1170 170 Q1171 168 1170 140 L1170 140 Q1168 111 1170 110 L1170 110 Q1171 108 1176 108 Z"/>
+    <path id="as-p-mat-hook-l" d="M15 113 L15 113 Q10 126 10 139 L10 139 Q10 152 16 166 L16 166 Q22 181 30 189 L30 189 Q38 197 52 202 L52 202 Q65 208 75 208 L75 208 Q85 209 92 208 L92 208 Q100 206 114 198 L114 198 Q127 191 128 190 L128 190 Q128 188 122 176 L122 176 Q115 164 115 160 L115 160 Q115 155 118 151 L118 151 Q120 147 122 147 L122 147 Q124 147 138 161 L138 161 Q151 175 159 179 L159 179 Q167 183 176 184 L176 184 Q186 184 199 177 L199 177 Q212 170 223 170 L223 170 Q234 171 236 170 L236 170 Q237 168 237 140 L237 140 Q237 112 236 110 L236 110 Q234 109 228 108 L228 108 Q221 108 206 100 L206 100 Q190 91 180 91 L180 91 Q171 91 164 94 L164 94 Q156 98 151 98 L151 98 Q146 99 129 87 L129 87 Q112 75 102 72 L102 72 Q92 68 79 68 L79 68 Q66 68 52 74 L52 74 Q39 80 30 90 L30 90 Q20 100 15 113 Z M66 106 L66 106 Q72 104 78 104 L78 104 Q84 104 88 106 L88 106 Q93 108 100 115 L100 115 Q107 122 112 130 L112 130 Q116 139 111 149 L111 149 Q106 159 102 164 L102 164 Q97 168 91 170 L91 170 Q85 173 75 172 L75 172 Q65 171 58 166 L58 166 Q52 160 49 154 L49 154 Q46 149 46 142 L46 142 Q45 135 48 128 L48 128 Q50 120 56 114 L56 114 Q61 109 66 106 Z"/>
+    <path id="as-p-mat-hook-l-over" d="M1231 122 L1231 122 Q1224 121 1219 124 L1219 124 Q1214 127 1212 135 L1212 135 Q1210 143 1214 148 L1214 148 Q1217 154 1224 156 L1224 156 Q1232 157 1238 153 L1238 153 Q1243 149 1244 142 L1244 142 Q1245 134 1242 129 L1242 129 Q1238 124 1231 122 Z"/>
+    <path id="as-p-mat-hook-r" d="M1169 111 L1169 111 L1170 167 L1179 168 Q1188 169 1196 174 L1196 174 Q1204 179 1220 180 L1220 180 Q1237 182 1248 178 L1248 178 Q1258 175 1265 175 L1265 175 Q1272 175 1283 166 L1283 166 Q1294 156 1295 154 L1295 154 Q1296 151 1294 146 L1294 146 Q1291 142 1286 140 L1286 140 Q1281 138 1267 122 L1267 122 Q1253 107 1244 102 L1244 102 Q1236 98 1226 98 L1226 98 Q1217 98 1204 104 L1204 104 Q1192 110 1188 109 L1188 109 Q1183 108 1176 110 Z M1379 88 L1379 88 L1368 98 Q1356 109 1356 111 L1356 111 Q1355 113 1360 123 L1360 123 Q1364 133 1364 141 L1364 141 Q1363 149 1360 157 L1356 165 L1375 185 L1380 182 Q1385 180 1388 176 L1388 176 Q1391 171 1395 156 L1395 156 Q1399 140 1396 126 L1396 126 Q1394 113 1386 100 Z"/>
+    <path id="as-p-mat-gate-l" d="M122 148 L122 148 Q119 149 118 152 L118 152 Q116 155 117 162 L117 162 Q118 169 124 179 L124 179 Q129 189 134 190 L134 190 Q138 192 142 198 L142 198 Q146 204 147 231 L147 231 Q148 258 150 261 L150 261 Q152 264 156 264 L156 264 Q159 265 163 260 L163 260 Q167 256 168 232 L168 232 Q168 207 170 200 L170 200 Q171 193 174 191 L174 191 Q176 189 187 188 L187 188 Q198 186 206 182 L206 182 Q213 177 215 174 L217 171 L214 171 Q212 171 201 178 L201 178 Q190 184 178 184 L178 184 Q167 184 156 178 L156 178 Q146 172 135 160 L135 160 Q124 148 122 148 Z M1316 106 L1316 106 L1309 111 Q1302 116 1296 128 L1290 140 L1296 130 Q1301 119 1308 112 Z"/>
+    <path id="as-p-mat-gate-r" d="M1183 106 L1183 106 L1188 108 Q1192 109 1202 104 L1202 104 Q1212 98 1224 98 L1224 98 Q1236 97 1244 102 L1244 102 Q1253 106 1267 122 L1267 122 Q1281 137 1286 139 L1290 141 L1290 138 Q1289 136 1293 129 L1293 129 Q1297 122 1304 114 L1304 114 Q1312 106 1324 104 L1324 104 Q1336 103 1346 108 L1355 112 L1355 110 Q1355 109 1366 98 L1378 88 L1371 82 Q1364 75 1350 70 L1350 70 Q1337 66 1324 67 L1324 67 Q1310 68 1294 76 L1294 76 Q1279 85 1272 84 L1272 84 Q1266 84 1262 78 L1262 78 Q1259 72 1259 46 L1259 46 Q1259 21 1258 18 L1258 18 Q1257 15 1252 12 L1248 10 L1243 14 Q1238 19 1238 42 L1238 42 Q1238 64 1236 74 L1236 74 Q1235 85 1233 87 L1233 87 Q1231 89 1217 91 L1217 91 Q1203 93 1193 100 Z"/>
+    <path id="as-p-mat-ring" d="M1269 176 L1269 176 L1282 186 Q1295 197 1310 202 L1310 202 Q1324 207 1340 205 L1340 205 Q1356 203 1365 198 L1365 198 Q1374 192 1379 186 L1384 181 L1375 186 L1366 176 Q1356 167 1356 164 L1357 161 L1350 166 Q1342 172 1332 172 L1332 172 Q1323 173 1316 170 L1316 170 Q1309 167 1303 160 L1297 152 L1286 164 Q1274 175 1272 176 Z M1122 114 L1122 114 Q1118 114 1114 118 L1114 118 Q1111 122 1110 135 L1110 135 Q1110 148 1112 154 L1112 154 Q1115 160 1120 162 L1126 164 L1129 160 Q1132 155 1132 140 L1132 140 Q1132 125 1130 120 L1130 120 Q1127 115 1122 114 Z"/>
+    <path id="as-p-mat-pin" d="M180 126 L180 126 Q172 125 168 128 L168 128 Q163 131 162 138 L162 138 Q160 146 164 151 L164 151 Q167 156 172 158 L172 158 Q178 159 184 154 L184 154 Q191 150 192 144 L192 144 Q193 137 190 132 L190 132 Q187 128 180 126 Z M281 109 L281 109 L280 120 Q278 132 280 150 L281 168 L288 164 Q294 161 296 156 L296 156 Q297 150 296 136 L296 136 Q295 123 292 120 L292 120 Q289 116 286 116 L284 116 Z"/>
+  </defs>
+  <g id="as-fills" class="fills" fill-rule="evenodd">
+    <g id="as-mat-leather-base" class="lay-mat-leather-base"><use href="#as-p-mat-leather-base" fill="var(--leather)"/></g>
+    <g id="as-mat-leather-strap" class="lay-mat-leather-strap"><use href="#as-p-mat-leather-strap" fill="var(--leather)"/></g>
+    <g id="as-mat-splatter" class="lay-splatter"><use href="#as-p-mat-leather-base" fill="url(#splatAs) none"/></g>
+    <g id="as-mat-thread" class="lay-mat-thread"><use href="#as-p-mat-thread" fill="var(--stitch)"/></g>
+    <g id="as-mat-thread-2" class="lay-mat-thread-2"><use href="#as-p-mat-thread-2" fill="var(--stitch)"/></g>
+    <g id="as-mat-rivet" class="lay-mat-rivet"><use href="#as-p-mat-rivet" fill="var(--rivet)"/></g>
+    <g id="as-mat-rivet-2" class="lay-mat-rivet-2"><use href="#as-p-mat-rivet-2" fill="var(--rivet)"/></g>
+    <g id="as-mat-frame-l" class="lay-mat-frame-l"><use href="#as-p-mat-frame-l" fill="var(--hw)"/></g>
+    <g id="as-mat-frame-r" class="lay-mat-frame-r"><use href="#as-p-mat-frame-r" fill="var(--hw)"/></g>
+    <g id="as-mat-hook-l" class="lay-mat-hook-l"><use href="#as-p-mat-hook-l" fill="var(--hw)"/></g>
+    <g id="as-mat-hook-r" class="lay-mat-hook-r"><use href="#as-p-mat-hook-r" fill="var(--hw)"/></g>
+    <g id="as-mat-gate-l" class="lay-mat-gate-l"><use href="#as-p-mat-gate-l" fill="var(--hw)"/></g>
+    <g id="as-mat-gate-r" class="lay-mat-gate-r"><use href="#as-p-mat-gate-r" fill="var(--hw)"/></g>
+    <g id="as-mat-ring" class="lay-mat-ring"><use href="#as-p-mat-ring" fill="var(--hw)"/></g>
+    <g id="as-mat-pin" class="lay-mat-pin"><use href="#as-p-mat-pin" fill="var(--hw)"/></g>
+    <g id="as-mat-hook-l-over" class="lay-mat-hook-l-over"><use href="#as-p-mat-hook-l-over" fill="var(--hw)"/></g>
+  </g>
+  <g id="as-mat-outline" class="mat-outline" fill="none" stroke="var(--ink)"
+     stroke-linejoin="round" stroke-linecap="round">
+    <use class="ol-mat-leather-strap" href="#as-p-mat-leather-strap" stroke-width="0.94"/>
+    <use class="ol-mat-thread" href="#as-p-mat-thread" stroke-width="0.39"/>
+    <use class="ol-mat-thread-2" href="#as-p-mat-thread-2" stroke-width="0.39"/>
+    <use class="ol-mat-rivet" href="#as-p-mat-rivet" stroke-width="0.83"/>
+    <use class="ol-mat-rivet-2" href="#as-p-mat-rivet-2" stroke-width="0.83"/>
+    <use class="ol-mat-frame-l" href="#as-p-mat-frame-l" stroke-width="0.83"/>
+    <use class="ol-mat-frame-r" href="#as-p-mat-frame-r" stroke-width="0.83"/>
+    <use class="ol-mat-hook-l" href="#as-p-mat-hook-l" stroke-width="0.83"/>
+    <use class="ol-mat-hook-l ol-mat-hook-l-over" href="#as-p-mat-hook-l-over" stroke-width="0.83"/>
+    <use class="ol-mat-hook-r" href="#as-p-mat-hook-r" stroke-width="0.83"/>
+    <use class="ol-mat-gate-l" href="#as-p-mat-gate-l" stroke-width="0.83"/>
+    <use class="ol-mat-gate-r" href="#as-p-mat-gate-r" stroke-width="0.83"/>
+    <use class="ol-mat-ring" href="#as-p-mat-ring" stroke-width="0.83"/>
+    <use class="ol-mat-pin" href="#as-p-mat-pin" stroke-width="0.83"/>
+    <path d="M1396 152 L1396 152 Q1399 138 1396 126 L1396 126 Q1394 113 1389 104 L1389 104 Q1384 94 1376 86 L1376 86 Q1369 78 1362 74 L1362 74 Q1356 71 1346 68 L1346 68 Q1337 66 1326 66 L1326 66 Q1315 67 1297 75 L1297 75 Q1279 83 1274 83 L1274 83 Q1268 83 1264 78 L1264 78 Q1261 73 1261 54 L1261 54 Q1261 35 1260 26 L1260 26 Q1258 17 1256 14 L1256 14 Q1253 11 1250 10 L1250 10 Q1248 10 1244 12 L1244 12 Q1240 15 1238 19 L1238 19 Q1237 23 1235 54 L1235 54 Q1233 85 1230 87 L1230 87 Q1227 89 1215 91 L1215 91 Q1203 93 1194 99 L1194 99 Q1186 105 1181 106 L1181 106 Q1176 108 1172 106 L1172 106 Q1168 105 1164 83 L1164 83 Q1161 61 1157 54 L1157 54 Q1153 46 1145 39 L1145 39 Q1137 32 1128 29 L1128 29 Q1120 26 1088 26 L1088 26 Q1055 26 1050 28 L1050 28 Q1045 30 1042 34 L1042 34 Q1038 37 1034 46 L1030 56 L704 56 Q378 56 376 54 L376 54 Q374 52 372 44 L372 44 Q369 35 363 31 L363 31 Q357 27 348 26 L348 26 Q338 24 314 25 L314 25 Q289 26 278 30 L278 30 Q268 33 259 42 L259 42 Q250 51 247 58 L247 58 Q244 64 241 85 L241 85 Q238 106 236 108 L236 108 Q235 109 228 108 L228 108 Q221 108 206 100 L206 100 Q190 91 180 91 L180 91 Q171 91 164 94 L164 94 Q156 98 151 98 L151 98 Q146 99 129 87 L129 87 Q112 75 102 72 L102 72 Q92 68 79 68 L79 68 Q66 68 58 71 L58 71 Q49 74 42 78 L42 78 Q35 83 28 92 L28 92 Q20 100 15 113 L15 113 Q10 126 10 139 L10 139 Q10 152 12 159 L12 159 Q14 166 20 176 L20 176 Q26 186 32 192 L32 192 Q38 197 47 202 L47 202 Q56 206 70 208 L70 208 Q85 209 95 206 L95 206 Q105 204 116 197 L116 197 Q128 190 132 192 L132 192 Q137 193 141 200 L141 200 Q145 206 146 231 L146 231 Q146 256 150 261 L150 261 Q153 266 156 266 L156 266 Q160 266 164 262 L164 262 Q167 259 170 226 L170 226 Q172 194 176 192 L176 192 Q180 190 188 189 L188 189 Q197 188 210 179 L210 179 Q223 170 228 170 L228 170 Q233 170 236 172 L236 172 Q238 175 240 194 L240 194 Q242 213 247 224 L247 224 Q252 235 259 242 L259 242 Q266 248 272 251 L272 251 Q279 254 288 256 L288 256 Q296 257 325 257 L325 257 Q354 257 362 252 L362 252 Q370 247 373 239 L376 231 L1026 231 L1029 239 Q1032 247 1037 251 L1037 251 Q1042 255 1070 256 L1070 256 Q1099 257 1115 254 L1115 254 Q1131 252 1141 244 L1141 244 Q1151 237 1156 228 L1156 228 Q1162 218 1165 195 L1165 195 Q1168 172 1170 170 L1170 170 Q1172 168 1178 168 L1178 168 Q1185 168 1194 174 L1194 174 Q1204 179 1210 180 L1210 180 Q1216 182 1226 182 L1226 182 Q1237 182 1248 178 L1248 178 Q1258 175 1263 175 L1263 175 Q1268 175 1279 184 L1279 184 Q1290 194 1298 198 L1298 198 Q1307 203 1324 205 L1324 205 Q1340 207 1352 203 L1352 203 Q1364 199 1372 192 L1372 192 Q1380 186 1386 176 L1386 176 Q1393 167 1396 152 Z M66 106 L66 106 Q72 104 78 104 L78 104 Q84 104 88 106 L88 106 Q93 108 100 115 L100 115 Q107 122 112 130 L112 130 Q116 139 111 149 L111 149 Q106 159 102 164 L102 164 Q97 168 91 170 L91 170 Q85 173 75 172 L75 172 Q65 171 58 166 L58 166 Q52 160 49 154 L49 154 Q46 149 46 142 L46 142 Q45 135 48 128 L48 128 Q50 120 56 114 L56 114 Q61 109 66 106 Z M1318 106 L1318 106 Q1325 103 1333 104 L1333 104 Q1341 104 1349 110 L1349 110 Q1357 115 1360 121 L1360 121 Q1363 127 1364 135 L1364 135 Q1364 143 1362 150 L1362 150 Q1359 158 1355 162 L1355 162 Q1351 167 1344 170 L1344 170 Q1338 173 1330 173 L1330 173 Q1323 173 1316 170 L1316 170 Q1309 167 1300 154 L1290 141 L1296 130 Q1301 119 1306 114 L1306 114 Q1312 108 1318 106 Z M292 62 L292 62 Q299 58 309 59 L319 60 L318 64 Q316 67 316 144 L316 144 Q316 221 314 222 L314 222 Q313 224 306 224 L306 224 Q298 224 293 222 L293 222 Q288 220 284 214 L284 214 Q280 209 279 202 L279 202 Q278 196 279 182 L279 182 Q280 169 287 165 L287 165 Q294 161 296 156 L296 156 Q297 150 296 136 L296 136 Q295 123 292 120 L292 120 Q289 116 285 114 L281 113 L280 97 Q279 81 282 74 L282 74 Q284 66 292 62 Z M1085 57 L1085 57 L1097 57 Q1109 57 1113 58 L1113 58 Q1117 60 1120 64 L1120 64 Q1124 67 1126 74 L1126 74 Q1128 80 1127 96 L1127 96 Q1126 111 1120 114 L1120 114 Q1113 118 1112 124 L1112 124 Q1110 129 1111 144 L1111 144 Q1112 158 1120 164 L1120 164 Q1127 171 1128 188 L1128 188 Q1128 204 1124 212 L1124 212 Q1119 219 1112 222 L1112 222 Q1105 224 1096 223 L1087 222 Z" stroke-width="1.26"/>
+  </g>
+  </g>
+  <!-- ANTISWAY:END -->
+
+  <!-- ---- painted stamps + name ---- -->
+  <g id="stampL" transform="translate(226,188) scale(.54)"><use href="#ph-maltese"/></g>
+  <g id="stampR" transform="translate(744,188) scale(.54)"><use href="#ph-flag"/></g>
+  <text id="nameTxt" x="485" y="211" text-anchor="middle"
+        font-family="'Bevan',serif" font-size="66" letter-spacing="7"
+        fill="var(--paint)" stroke="var(--outline)" stroke-width="7" paint-order="stroke"
+        stroke-linejoin="round">JPETITO</text>
+</g>
+</svg>
+        </div>
+
+        <!-- listing photos are the default view; the SVG rig is the Live
+             Preview tile. Thumbs are built by JS from GALLERY below. -->
+        <div class="gal-thumbs" id="galThumbs" role="tablist" aria-label="Product views"></div>
+
+        <div class="cfg-price">
+          <button type="button" class="mini" id="miniBtn" title="See your build in the live preview" aria-label="See your build in the live preview">
+            <span class="mini-slot" id="miniSlot"><img id="miniImg" alt=""></span>
+            <span class="mini-cta" id="miniCta">See it<br>live</span>
+          </button>
+          <div><span style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)">Your rig</span><br><span class="amt" id="price">$114.99</span></div>
+          <div class="brk" id="priceBrk">Base strap $114.99</div>
+        </div>
+        <div class="cfg-actions">
+          <button type="button" class="gold" onclick="alert('Online checkout is coming soon — call (609) 367-2479 to order your custom rig.')">Add To Cart</button>
+          <button type="button" id="shareBtn">Copy Design Link</button>
+        </div>
+        <div class="zoombar">
+          <div class="chip on" data-view="all">Full Set</div>
+          <div class="chip" data-view="belt">Strap</div>
+          <div class="chip" data-view="holster">Holster</div>
+          <div class="chip" data-view="sway">Anti-Sway</div>
+        </div>
+      </div>
+
+      <!-- ================= CONTROLS =================
+           Groups, order, choice lists and price modifiers are the live listing's,
+           captured verbatim in research/jp-current-site/radio-strap-options.md.
+           Color groups render as swatches because they drive the preview; the
+           rest keep the control type the real form uses. -->
+      <div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">01</span><h3>Leather Color</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="leather"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button><span class="pick" id="pick-leather"></span></div>
+          <p class="cg-note">Recolors every leather piece at once — strap, holster and anti-sway.</p>
+          <div class="sw-grid" id="g-leather"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">02</span><h3>Radio Strap Length</h3><span class="req">Required</span><button type="button" class="guide-btn" id="sizeGuideBtn">Size&nbsp;guide</button><span class="pick" id="pick-length"></span></div>
+          <p class="cg-note">Measured end to end, including the scissor snaps. Not sure? Pick <b>Other</b> and put your measurement in the notes.</p>
+          <div class="opt-row" id="g-length"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">03</span><h3>Stitching</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="stitch"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button><span class="pick" id="pick-stitch"></span></div>
+          <p class="cg-note">Thread color runs every seam. Double stitch adds the second row on each edge — <b>+$20</b>. Note it may run through the image stamps.</p>
+          <div class="sw-grid" id="g-stitch" style="margin-bottom:16px"></div>
+          <div class="opt-row" id="g-ds"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">04</span><h3>Stamps</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
+          <p class="cg-note">Top and bottom slots — choose from <b>116 hand-painted designs</b> per slot.</p>
+          <div class="stamp-cols">
+            <div>
+              <p class="cg-note" style="margin-bottom:8px">Top stamp</p>
+              <div class="dd" id="g-lstamp"></div>
+            </div>
+            <div>
+              <p class="cg-note" style="margin-bottom:8px">Bottom stamp</p>
+              <div class="dd" id="g-rstamp"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">05</span><h3>Rear Text</h3></div>
+          <p class="cg-note">Optional hand-painted lettering. On the real strap this runs down the back — the preview shows it face-on so you can read it.</p>
+          <div class="text-row"><input class="text-in" id="rearIn" value="JPETITO" placeholder="Name, unit or number"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">06</span><h3>Text Paint Color</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="paint"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button><span class="pick" id="pick-paint"></span></div>
+          <p class="cg-note">Fill color for the lettering. Themed finishes — flags, camo, tie dye, flames — add <b>+$15</b>.</p>
+          <div class="sw-grid" id="g-paint"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">07</span><h3>Text Outline Color</h3><span class="req">Required</span><button type="button" class="guide-btn" data-photo="outline"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button><span class="pick" id="pick-outline"></span></div>
+          <p class="cg-note">Outline around each letter. Pick <b>None</b> for unoutlined text.</p>
+          <div class="sw-grid" id="g-outline"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">08</span><h3>Radio Holster &amp; Anti-Sway</h3><span class="req">Required</span></div>
+          <p class="cg-note">Adds the holster and anti-sway strap to your rig. Trauma holsters carry a deeper pocket — <b>+$80</b> instead of <b>+$60</b>.</p>
+          <select class="text-in" id="g-holster"></select>
+          <p class="cg-note" style="margin:10px 0 0" id="holsterDims"></p>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">09</span><h3>Hardware Color</h3><span class="req">Required</span><span class="pick" id="pick-hw"></span></div>
+          <p class="cg-note">Trigger snaps, snap studs, D-ring, end frames and the load rivets — they all take the same finish.</p>
+          <div class="sw-grid" id="g-hw"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">10</span><h3>Add Pen Loop</h3><span class="req">Required</span><span class="pick" id="pick-pen"></span></div>
+          <div class="opt-row" id="g-pen"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">11</span><h3>Add Two Cord Keepers</h3><span class="req">Required</span><span class="pick" id="pick-cord"></span></div>
+          <div class="opt-row" id="g-cord"></div>
+        </div>
+
+        <div class="cg">
+          <div class="cg-h"><span class="num">12</span><h3>Notes</h3></div>
+          <p class="cg-note">Custom colors, a length we should match, how you want a stamp painted — anything the options above can't say.</p>
+          <textarea class="text-in" id="notesIn" rows="3" placeholder="Anything else we should know"></textarea>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- The listing's own description, cleaned of scrape mojibake. The external
+     STAMP IMAGES blog link became the stamps Photo Swatches dialog, and the
+     sizing prose stays here too even though the Size guide dialog repeats it -
+     this block is the faithful "about" text from the original product page. -->
+<section class="about-strap">
+  <div class="wrap">
+    <span class="eyebrow">From The Listing</span>
+    <h2 class="bevan">About The Custom Radio Strap</h2>
+    <div class="about-cols">
+      <div>
+        <p>Our custom leather radio straps are made to stand up to the extreme conditions that
+           firefighters and EMTs deal with everyday. Our radio straps are 1.5 inches wide and made
+           with 10&ndash;12 oz. english bridle leather. We use heavy duty hardware and copper rivets
+           to ensure your strap will handle anything you can throw at it. All of our custom products
+           are handmade to order.</p>
+        <p>If you would like a leather color, stitching color, or paint color that is not listed in
+           the options, reach out to us and we will make it happen. We also offer custom image
+           stamps &mdash; so if you are looking to have your department&rsquo;s logo or a general
+           image that is not listed as an option, send us an email with your request.</p>
+        <h3>Things To Know</h3>
+        <p>&ndash; We paint all image stamps with a standard paint theme. If you would like them
+           painted a specific way, please mention it in the notes section.</p>
+        <p>&ndash; If double stitch is chosen, keep in mind it may run thru the image stamps.</p>
+        <p><button type="button" class="guide-btn" data-photo="stamps">See Photo Swatches</button>
+           &nbsp;every stamp, photographed.</p>
+      </div>
+      <div>
+        <h3>Holster Sizes</h3>
+        <p>The dimensions below are the maximum dimensions for each holster size:</p>
+        <ul>
+          <li>Standard Holster &mdash; H 7.5&quot; &times; W 2.75&quot; &times; D 1.8&quot;</li>
+          <li>Extended Battery Holster &mdash; H 9&quot; &times; W 2.75&quot; &times; D 1.8&quot;</li>
+          <li>Wide Holster &mdash; H 7.5&quot; &times; W 3.125&quot; &times; D 2.125&quot;</li>
+          <li>Wide Extended Battery Holster &mdash; H 9&quot; &times; W 3.125&quot; &times; D 2.125&quot;</li>
+        </ul>
+        <h3>How To Measure Radio Strap Length</h3>
+        <p><b>Measuring your current strap:</b> lay your strap out flat on a bench or the floor.
+           Measure it from one end to the other <b>including the scissor snaps</b> on the ends.</p>
+        <p><b>If you do not have a strap:</b> you will need a piece of rope or webbing (to simulate
+           a radio strap) and a tape measure. Drape it over your shoulder, bring one end and the
+           long side together at your hip (opposite side of your shoulder), and pinch it where you
+           would like the top of the radio holster to sit. Lay it out flat and measure from the end
+           to the pinched spot &mdash; that will be your measurement.</p>
+        <p><b>If it is a gift and you are not able to take a measurement:</b> include the
+           recipient&rsquo;s approximate height and build (or weight) and we will make the strap
+           accordingly. If by chance you receive the strap and it is a few inches too small or too
+           big, email us and we will fix it at no additional charge.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Size guide. The live listing has no chart image or linked page — this is the
+     measuring guidance from its product description, verbatim, plus the length
+     ranges carried in the Radio Strap Length labels. A dialog rather than a link
+     so the client preview never navigates away from the builder. -->
+<div class="modal" id="sizeModal" role="dialog" aria-modal="true" aria-labelledby="sizeModalTitle" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-x" id="sizeModalX" aria-label="Close">&times;</button>
+    <h2 id="sizeModalTitle">Radio Strap Sizing</h2>
+
+    <h3 style="margin-top:0">Suggested size</h3>
+    <p>Find your height and weight, then tap the cell to set your length.
+       <b>To ensure a perfect fit, please measure yourself</b> — the chart is a
+       starting point, not a substitute.</p>
+    <div class="fit-wrap" id="fitChart"></div>
+    <p class="fit-key"><span class="fit fit-M">M</span> Medium
+       <span class="fit fit-L">L</span> Large
+       <span class="fit fit-X">XL</span> X-Large
+       <span class="fit fit-C">C</span> Custom — put your measurement in the notes</p>
+
+    <h3>Length ranges</h3>
+    <table class="size-tbl">
+      <thead><tr><th>Size</th><th>Overall length</th></tr></thead>
+      <tbody>
+        <tr><td>Medium</td><td>54&quot;&ndash;62&quot;</td></tr>
+        <tr><td>Large</td><td>58&quot;&ndash;66&quot;</td></tr>
+        <tr><td>X-Large</td><td>62&quot;&ndash;70&quot;</td></tr>
+        <tr><td>Other</td><td>Add requested size to notes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>How to measure</h3>
+    <p class="lead">Measuring your current strap</p>
+    <p>Lay your strap out flat on a bench or the floor. Measure it from one end to the other
+       <b>including the scissor snaps</b> on the ends.</p>
+
+    <p class="lead">If you do not have a strap</p>
+    <p>You will need a piece of rope or webbing (to simulate a radio strap) and a tape measure.
+       Take your rope or webbing and drape it over your shoulder. Bring one end of the rope/webbing
+       and the long side of the rope/webbing together at your hip (opposite side of your shoulder).
+       Pinch it where you would like the top of the radio holster to sit. While holding the
+       rope/webbing, remove it and lay it flat out on a bench or floor. Using a tape measure,
+       measure it from the end to the pinched spot. That will be your measurement.</p>
+
+    <p class="lead">If it is a gift and you cannot take a measurement</p>
+    <p>Include the recipient&rsquo;s approximate height and build (or weight) and we will make the
+       strap accordingly. If you receive the strap and it is a few inches too small or too big,
+       email us and we will fix it at no additional charge.</p>
+
+    <h3>Holster sizes</h3>
+    <p>Maximum dimensions for each holster size:</p>
+    <table class="size-tbl">
+      <tbody>
+        <tr><td>Standard</td><td>H 7.5&quot; &times; W 2.75&quot; &times; D 1.8&quot;</td></tr>
+        <tr><td>Extended Battery</td><td>H 9&quot; &times; W 2.75&quot; &times; D 1.8&quot;</td></tr>
+        <tr><td>Wide</td><td>H 7.5&quot; &times; W 3.125&quot; &times; D 2.125&quot;</td></tr>
+        <tr><td>Wide Extended Battery</td><td>H 9&quot; &times; W 3.125&quot; &times; D 2.125&quot;</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- Real photographed swatches, so a customer can check a colour against leather
+     and thread rather than trusting a flat screen colour. -->
+<div class="modal" id="photoModal" role="dialog" aria-modal="true" aria-labelledby="photoTitle" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-x" aria-label="Close">&times;</button>
+    <h2 id="photoTitle"></h2>
+    <p id="photoNote"></p>
+    <div id="photoBody"></div>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-base">
+      <span>© 2026 JP Custom Leatherworks. All rights reserved.</span>
+      <span>Family Owned &amp; Operated · Handmade In Whiting, NJ</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// the pinned preview offsets itself below the sticky header; measure it, and
+// re-measure on resize because the nav wraps at narrow widths
+const syncHead=()=>document.documentElement.style.setProperty(
+  '--head', document.querySelector('header').getBoundingClientRect().height+'px');
+syncHead(); addEventListener('resize', syncHead);
+
+// ---------------- option data ----------------
+// Every list below is the live listing's, verbatim and in its order — see
+// research/jp-current-site/radio-strap-options.md. `a` is the price modifier the
+// label carries; `fx` only styles the swatch dot.
+const O=(n,c,a,fx,s)=>({n,c,a:a||0,fx:fx||null,s:s||n});
+const SPL='splatter';
+const SP=(o,cols)=>Object.assign(o,{sp:cols});   // paint flung over the leather
+
+const LEATHER = [
+  O('Black','#20191a'), O('Brown','#5b3416'), O('Saddle Tan','#b3814a'),
+  O('Mahogany','#63241c'), O('Fire Truck Red','#b3201f'), O('White','#f2efe8'),
+  O('Gray','#7c7c7c'), O('Green','#2f5130'), O('Royal Blue','#23439c'), O('Pink','#e58fb0'),
+  SP(O('White- Neon Splatter Paint','#f2efe8',20,SPL,'White · Neon Splatter'),['#ff2d84','#39d353','#22a7ff']),
+  SP(O('Black- Neon Splatter Paint','#20191a',20,SPL,'Black · Neon Splatter'),['#39d353','#ff2d84','#eaff3a']),
+  SP(O('Black- Red, White and Blue Splatter Paint','#20191a',20,SPL,'Black · R/W/B Splatter'),['#c0231f','#f2efe8','#2255a4']),
+  SP(O('Black- Red Splatter Paint','#20191a',20,SPL,'Black · Red Splatter'),['#c0231f','#a3121a','#d1451c']),
+  SP(O('Custom Splatter Paint- Add Leather Color and Paint Colors to Notes','#20191a',20,SPL,'Custom Splatter'),['#f2efe8','#c8a642','#b9bdc4']),
+];
+const LENGTH = [
+  O('Medium 54"-62"'), O('Large 58"-66"'), O('X-Large 62"-70"'),
+  O('Other ( Add requested size to notes)',null,0,null,'Other · size in notes'),
+];
+const STITCH = [
+  O('None',null), O('Grooved','groove'),
+  O('Black','#20191a'), O('White','#f2efe8'), O('Red','#c0231f'), O('Dark Red','#7a1a18'),
+  O('Orange','#e2701a'), O('Yellow','#f2c53d'), O('Green','#2fbf57'), O('OD Green','#5b6238'),
+  O('Turquoise','#2fbfb0'), O('Blue','#2255a4'), O('Purple','#6a3b9e'), O('Light Purple','#a888d6'),
+  O('Neon Pink','#ff2d84'), O('Hot Pink','#e83f8f'), O('Light Pink','#f3b6c8'),
+  O('Brown','#5b3416'), O('Gold','#c8a642'), O('Silver','#c4c7cb'),
+];
+const DOUBLE = [O('Single'), O('Double',null,20)];
+
+// The 46 solid paints. Text Paint adds 14 themed finishes on top; Text Outline
+// stops there, and orders Gold before Pearlescent 18k Gold.
+const SOLIDS = [
+  O('None',null), O('Black','#191413'), O('White','#f2efe8'), O('Red','#c0231f'),
+  O('Pearlescent Red','#d94a44',0,'pearl'), O('Red Glitter','#c0231f',0,'glitter'),
+  O('Dark Red','#7a1a18'), O('Burgundy','#5e1f2a'), O('Orange','#e2701a'),
+  O('Orange Glitter','#e2701a',0,'glitter'), O('Neon Orange','#ff7a1a'),
+  O('Dark Orange','#b8530f'), O('Yellow','#f2c53d'), O('Neon Yellow','#eaff3a'),
+  O('Light Green','#7cc46a'), O('Pearlescent Green','#58a865',0,'pearl'),
+  O('Green Glitter','#2e8b3d',0,'glitter'), O('Neon Green','#39d353'),
+  O('OD Green','#5b6238'), O('Turquoise','#2fbfb0'),
+  O('Turquoise Glitter','#2fbfb0',0,'glitter'), O('Light Blue','#5aa7e0'),
+  O('Blue','#2255a4'), O('Pearlescent Blue','#3f78c4',0,'pearl'),
+  O('Blue Glitter','#2255a4',0,'glitter'), O('Neon Blue','#22a7ff'),
+  O('Light Purple','#a888d6'), O('Light Purple Glitter','#a888d6',0,'glitter'),
+  O('Purple','#6a3b9e'), O('Pearlescent Purple','#8256b8',0,'pearl'),
+  O('Purple Glitter','#6a3b9e',0,'glitter'), O('Neon Purple','#a83bff'),
+  O('Light Pink','#f3b6c8'), O('Hot Pink','#e83f8f'),
+  O('Pink Glitter','#e83f8f',0,'glitter'), O('Neon Pink','#ff2d84'),
+  O('Gray','#7c7c7c'), O('Silver','#c4c7cb'), O('Pewter','#8e8e88'),
+  O('Gunmetal Glitter','#4a4e54',0,'glitter'),
+];
+const GOLDS_PAINT = [O('Gold','#c8a642'), O('Pearlescent 18k Gold','#d8b757',0,'pearl')];
+const GOLDS_OUT   = [O('Pearlescent 18k Gold','#d8b757',0,'pearl'), O('Gold','#c8a642')];
+const TAIL = [O('Gold Glitter','#c8a642',0,'glitter'),
+              O('Pearlescent Rose Gold','#d9a08c',0,'pearl'),
+              O('Copper','#b87333'), O('Brown','#5b3416')];
+const THEMED = [
+  O('American Flag','#b3201f',15,'flag-us'), O('Thin Red Line Flag','#c0231f',15,'flag-trl'),
+  O('Irish Flag','#2e8b3d',15,'flag-ie'), O('Cow Print','#f2efe8',15,'cow'),
+  O('Dripping Blood','#a3121a',15,'blood'), O('Green Camouflage','#5b6238',15,'camo-g'),
+  O('Blue Camouflage','#2f4a6b',15,'camo-b'), O('Pink Camouflage','#d97ba0',15,'camo-p'),
+  O('Red, White, & Blue Camouflage','#3a4a6b',15,'camo-rwb'),
+  O('Neon Tie Dye','#ff2d84',15,'tie-neon'), O('Red, White, & Blue Tie Dye','#2255a4',15,'tie-rwb'),
+  O('Red Flames','#d1451c',15,'flame-r'), O('Orange Flames','#e2701a',15,'flame-o'),
+  O('Blue Flames','#22a7ff',15,'flame-b'),
+];
+const PAINT   = [...SOLIDS, ...GOLDS_PAINT, ...TAIL, ...THEMED];
+const OUTLINE = [...SOLIDS, ...GOLDS_OUT,   ...TAIL];
+
+const HOLSTER = [
+  O('No'), O('Yes- Standard Holster',null,60), O('Yes- Extended Battery Holster',null,60),
+  O('Yes- Wide Holster',null,60), O('Yes- Wide Extended Battery Holster',null,60),
+  O('Yes- "Trauma" Holster',null,80), O('Yes- Extended Battery "Trauma" Holster',null,80),
+  O('Yes- Wide "Trauma" Holster',null,80), O('Yes- Wide Extended Battery "Trauma" Holster',null,80),
+];
+const DIMS = ['', 'Standard — H 7.5" × W 2.75" × D 1.8"', 'Extended Battery — H 9" × W 2.75" × D 1.8"',
+  'Wide — H 7.5" × W 3.125" × D 2.125"', 'Wide Extended Battery — H 9" × W 3.125" × D 2.125"',
+  'Trauma, standard body — H 7.5" × W 2.75" × D 1.8"',
+  'Trauma, extended battery — H 9" × W 2.75" × D 1.8"',
+  'Trauma, wide — H 7.5" × W 3.125" × D 2.125"',
+  'Trauma, wide extended battery — H 9" × W 3.125" × D 2.125"'];
+const HW   = [O('Nickel','#b9bdc4'), O('Black','#26262a'), O('Solid Brass','#a8853c',10)];
+const YESNO10 = [O('No'), O('Yes',null,10)];
+const STAMPS = [
+  O('None',null), O('Maltese Cross','ph-maltese'), O('Flag Roundel','ph-flag'),
+  O('Star of Life','ph-life'), O('Shield','ph-shield'), O('Bugle','ph-bugle'),
+];
+
+// ---------------- state (defaults = the photographed rig) ----------------
+// defaults by name, not index - the lists are the live listing's and reorder with it
+const ix=(list,n)=>list.findIndex(o=>o.n===n);
+const state = {leather:ix(LEATHER,'Brown'), length:1, stitch:ix(STITCH,'Black'), ds:1,
+               ls:1, rs:2, rear:'JPETITO', paint:ix(PAINT,'Black'), outline:ix(OUTLINE,'Gold'),
+               holster:1, hw:ix(HW,'Black'), pen:0, cord:0, notes:'', view:'all'};
+const art = document.getElementById('art');
+const $ = id => document.getElementById(id);
+
+// ---------------- swatch / chip builders ----------------
+const FX = {
+  glitter:c=>c+' radial-gradient(circle at 30% 30%,rgba(255,255,255,.85) 0 1px,transparent 1px) repeat 0 0/5px 5px',
+  pearl:c=>'linear-gradient(135deg,rgba(255,255,255,.45) 0%,'+c+' 45%,rgba(0,0,0,.35) 100%)',
+  splatter:c=>c,        // the flecks are real artwork, see dotInner()
+  groove:()=>'repeating-linear-gradient(90deg,#4a4038 0 3px,#2f2823 3px 6px)',
+  none:()=>'repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)',
+  'flag-us':()=>'linear-gradient(180deg,#b3201f 0 33%,#f2efe8 33% 66%,#23439c 66%)',
+  'flag-trl':()=>'linear-gradient(180deg,#191413 0 40%,#c0231f 40% 60%,#191413 60%)',
+  'flag-ie':()=>'linear-gradient(90deg,#2e8b3d 0 33%,#f2efe8 33% 66%,#e2701a 66%)',
+  cow:()=>'#f2efe8 radial-gradient(circle at 35% 40%,#191413 0 4px,transparent 4px) repeat 0 0/11px 11px',
+  blood:()=>'linear-gradient(180deg,#7a1a18 0 45%,#a3121a 45%)',
+  'camo-g':()=>'#5b6238 radial-gradient(circle at 30% 30%,#3c4226 0 4px,transparent 4px) repeat 0 0/9px 9px',
+  'camo-b':()=>'#2f4a6b radial-gradient(circle at 30% 30%,#1d3049 0 4px,transparent 4px) repeat 0 0/9px 9px',
+  'camo-p':()=>'#d97ba0 radial-gradient(circle at 30% 30%,#a8567a 0 4px,transparent 4px) repeat 0 0/9px 9px',
+  'camo-rwb':()=>'#3a4a6b radial-gradient(circle at 30% 30%,#b3201f 0 4px,transparent 4px) repeat 0 0/9px 9px',
+  'tie-neon':()=>'conic-gradient(#ff2d84,#39d353,#22a7ff,#eaff3a,#ff2d84)',
+  'tie-rwb':()=>'conic-gradient(#b3201f,#f2efe8,#2255a4,#b3201f)',
+  'flame-r':()=>'linear-gradient(180deg,#f2c53d 0 20%,#d1451c 55%,#7a1a18 100%)',
+  'flame-o':()=>'linear-gradient(180deg,#f2c53d 0 20%,#e2701a 55%,#b8530f 100%)',
+  'flame-b':()=>'linear-gradient(180deg,#eaff3a 0 18%,#22a7ff 55%,#1b2a55 100%)',
+};
+function dotCss(it){
+  if(it.fx && FX[it.fx]) return FX[it.fx](it.c,it);
+  if(it.c===null)        return FX.none();
+  if(it.c==='groove')    return FX.groove();
+  return it.c;
+}
+// Splatter dots show a window of #splatTile - the same artwork the preview uses,
+// so the fleck pattern is as irregular there as it is on the strap. The window is
+// offset per finish from its own name, so the five do not look like one swatch.
+function dotInner(it){
+  if(!it.sp) return '';
+  let h=0; for(let i=0;i<it.n.length;i++) h=(h*31+it.n.charCodeAt(i))>>>0;
+  const x=h%436, y=(h>>>9)%436;
+  return '<svg viewBox="'+x+' '+y+' 64 64" preserveAspectRatio="xMidYMid slice"'
+       + ' style="--sp1:'+it.sp[0]+';--sp2:'+it.sp[1]+';--sp3:'+it.sp[2]+'">'
+       + '<use href="#splatTile"/></svg>';
+}
+function swatch(list, mount, key){
+  const el=$(mount);
+  list.forEach((it,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='sw-item'; b.dataset.i=i; b.title=it.n;
+    b.innerHTML='<span class="dot" style="background:'+dotCss(it)+'">'+dotInner(it)+'</span>'
+              + '<span class="lab">'+it.s+'</span>' + (it.a?'<b>+$'+it.a+'</b>':'');
+    b.addEventListener('click',()=>{ state[key]=i; render(); });
+    el.appendChild(b);
+  });
+}
+function radios(list, mount, key){
+  const el=$(mount);
+  list.forEach((it,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='opt'; b.dataset.i=i;
+    b.title=it.n;
+    b.innerHTML=it.s+(it.a?' <b>+$'+it.a+'</b>':'');
+    b.addEventListener('click',()=>{ state[key]=i; render(); });
+    el.appendChild(b);
+  });
+}
+function chips(list, mount, key){
+  const el=$(mount);
+  list.forEach((it,i)=>{
+    const c=document.createElement('div');
+    c.className='chip'; c.dataset.i=i; c.textContent=it.n;
+    c.addEventListener('click',()=>{ state[key]=i; render(); });
+    el.appendChild(c);
+  });
+}
+function dropdown(list, mount, key){
+  const el=$(mount);
+  list.forEach((it,i)=>{
+    const o=document.createElement('option');
+    o.value=i; o.textContent=it.n+(it.a?' (+$'+it.a+')':'');
+    el.appendChild(o);
+  });
+  el.addEventListener('change',()=>{ state[key]=+el.value; render(); });
+}
+function stampIcon(k){
+  return k ? '<svg class="dd-ico" viewBox="-58 -58 116 116" aria-hidden="true"><use href="#'+k+'"/></svg>'
+           : '<span class="dd-ico none"></span>';
+}
+function closeStampMenus(){
+  document.querySelectorAll('.dd.open').forEach(d=>{
+    d.classList.remove('open');
+    d.querySelector('.dd-btn').setAttribute('aria-expanded','false');
+  });
+}
+function stampPicker(list, mount, key){
+  const el=$(mount);
+  el.innerHTML='<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"></button>'
+             + '<div class="dd-list" role="listbox"></div>';
+  const btn=el.querySelector('.dd-btn'), menu=el.querySelector('.dd-list');
+  list.forEach((it,i)=>{
+    const o=document.createElement('div');
+    o.className='dd-opt'; o.dataset.i=i; o.setAttribute('role','option');
+    o.innerHTML=stampIcon(it.c)+'<span>'+it.n+'</span>';
+    o.addEventListener('click',e=>{ e.stopPropagation(); state[key]=i; closeStampMenus(); render(); });
+    menu.appendChild(o);
+  });
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const open=el.classList.contains('open');
+    closeStampMenus();
+    if(!open){ el.classList.add('open'); btn.setAttribute('aria-expanded','true');
+      const sel=menu.querySelector('.dd-opt.on'); if(sel) sel.scrollIntoView({block:'nearest'}); }
+  });
+  el.refresh=()=>{
+    const it=list[state[key]];
+    btn.innerHTML=stampIcon(it.c)+'<span>'+it.n+'</span>';
+    menu.querySelectorAll('.dd-opt').forEach(o=>o.classList.toggle('on',+o.dataset.i===state[key]));
+  };
+}
+document.addEventListener('click',closeStampMenus);
+addEventListener('keydown',e=>{ if(e.key==='Escape') closeStampMenus(); });
+
+swatch(LEATHER,'g-leather','leather');
+radios(LENGTH,'g-length','length');
+swatch(STITCH,'g-stitch','stitch');
+radios(DOUBLE,'g-ds','ds');
+stampPicker(STAMPS,'g-lstamp','ls');
+stampPicker(STAMPS,'g-rstamp','rs');
+swatch(PAINT,'g-paint','paint');
+swatch(OUTLINE,'g-outline','outline');
+dropdown(HOLSTER,'g-holster','holster');
+swatch(HW,'g-hw','hw');
+radios(YESNO10,'g-pen','pen');
+radios(YESNO10,'g-cord','cord');
+document.querySelectorAll('[data-view]').forEach(c=>c.addEventListener('click',()=>{ state.view=c.dataset.view; render(); }));
+$('rearIn').addEventListener('input',e=>{ state.rear=e.target.value; render(); });
+$('notesIn').addEventListener('input',e=>{ state.notes=e.target.value; });
+
+// group header: colour chip + the option's full name
+function pick(id, it, extra){
+  $(id).innerHTML = '<span class="pdot" style="background:'+dotCss(it)+'">'+dotInner(it)+'</span>'
+                  + it.n + (extra||'');
+}
+
+// ---------------- render ----------------
+const VIEWS = {all:'0 0 1000 1000', diag:'190 -122 620 620', belt:'0 120 1000 136', holster:'324 294 314 420', sway:'132 747 700 152'};
+function mark(mount, idx){
+  document.querySelectorAll('#'+mount+' .sw-item, #'+mount+' .chip, #'+mount+' .opt')
+    .forEach(el=>el.classList.toggle('on', +el.dataset.i===idx));
+}
+function render(){
+  const L=LEATHER[state.leather], S=STITCH[state.stitch], H=HW[state.hw],
+        P=PAINT[state.paint], Ou=OUTLINE[state.outline], HO=HOLSTER[state.holster];
+
+  art.style.setProperty('--leather',L.c);
+  art.classList.toggle('splat', !!L.sp);
+  if(L.sp) L.sp.forEach((c,i)=>art.style.setProperty('--sp'+(i+1),c));
+  art.style.setProperty('--hw',H.c);
+  art.style.setProperty('--copper',H.c);   // load rivets follow the hardware finish
+  art.style.setProperty('--paint',P.c||'transparent');
+  art.style.setProperty('--outline',Ou.c||'transparent');
+  if(S.c && S.c!=='groove') art.style.setProperty('--stitch',S.c);
+  else if(S.c==='groove')   art.style.setProperty('--stitch','#000');
+
+  art.classList.toggle('nostitch', S.c===null);
+  art.classList.toggle('groove',  S.c==='groove');
+  art.classList.toggle('dbl',     state.ds===1);
+
+  // the holster and anti-sway are an add-on — no holster, no holster in the preview
+  const rig = state.holster>0;
+  $('holsterArt').style.display  = rig?'':'none';
+  $('antiswayArt').style.display = rig?'':'none';
+  document.querySelectorAll('[data-view="holster"],[data-view="sway"]')
+    .forEach(c=>c.style.display=rig?'':'none');
+  if(!rig && state.view!=='belt') state.view='all';
+  $('holsterDims').textContent = DIMS[state.holster];
+
+  // stamps
+  [['stampL',state.ls],['stampR',state.rs]].forEach(pair=>{
+    const k=STAMPS[pair[1]].c; $(pair[0]).innerHTML = k?'<use href="#'+k+'"/>':'';
+  });
+
+  // rear text — shrink to fit the gap between the two stamp slots
+  const t=$('nameTxt');
+  t.textContent=(state.rear||'').toUpperCase();
+  let fs=66;
+  t.setAttribute('font-size',fs); t.setAttribute('letter-spacing',7);
+  while(t.getComputedTextLength()>420 && fs>26){ fs-=2; t.setAttribute('font-size',fs); }
+  if(t.getComputedTextLength()>420) t.setAttribute('letter-spacing',2);
+  t.setAttribute('stroke-width', Ou.c ? Math.max(4,fs*0.1) : 0);
+
+  const diag = !rig && state.view==='all';
+  $('rig').setAttribute('transform', diag?'rotate(-30 500 188)':'');
+  art.setAttribute('viewBox', diag?VIEWS.diag:VIEWS[state.view]);
+  // with no holster the two remaining chips are just two angles on the strap
+  document.querySelector('[data-view="all"]').textContent  = rig?'Full Set':'Angled';
+  document.querySelector('[data-view="belt"]').textContent = rig?'Strap':'Straight On';
+
+  // price — every modifier comes from the option label, as on the live listing
+  const add=[];
+  if(L.a)  add.push([L.n,L.a]);
+  if(DOUBLE[state.ds].a) add.push(['Double stitch',DOUBLE[state.ds].a]);
+  if(P.a)  add.push([P.n+' paint',P.a]);
+  if(HO.a) add.push([HO.n.replace('Yes- ',''),HO.a]);
+  if(H.a)  add.push([H.n+' hardware',H.a]);
+  if(YESNO10[state.pen].a)  add.push(['Pen loop',10]);
+  if(YESNO10[state.cord].a) add.push(['Two cord keepers',10]);
+  const total=114.99+add.reduce((a,b)=>a+b[1],0);
+  $('price').textContent='$'+total.toFixed(2);
+  $('priceBrk').innerHTML=['Base strap $114.99'].concat(add.map(a=>a[0]+' +$'+a[1])).join('<br>');
+
+  // labels + highlights
+  pick('pick-leather',L);                              mark('g-leather',state.leather);
+  $('pick-length').textContent=LENGTH[state.length].n; mark('g-length',state.length);
+  pick('pick-stitch',S,' · '+DOUBLE[state.ds].n);      mark('g-stitch',state.stitch);
+  mark('g-ds',state.ds);
+  pick('pick-paint',P);                                mark('g-paint',state.paint);
+  pick('pick-outline',Ou);                             mark('g-outline',state.outline);
+  pick('pick-hw',H);                                   mark('g-hw',state.hw);
+  $('pick-pen').textContent=YESNO10[state.pen].n;      mark('g-pen',state.pen);
+  $('pick-cord').textContent=YESNO10[state.cord].n;    mark('g-cord',state.cord);
+  $('g-lstamp').refresh(); $('g-rstamp').refresh();
+  $('g-holster').value=state.holster;
+  document.querySelectorAll('[data-view]').forEach(c=>c.classList.toggle('on',c.dataset.view===state.view));
+}
+
+// ---------------- share link ----------------
+const KEYS={l:'leather',z:'length',s:'stitch',d:'ds',a:'ls',b:'rs',p:'paint',o:'outline',
+            k:'holster',h:'hw',e:'pen',c:'cord'};
+const LISTS={leather:LEATHER,length:LENGTH,stitch:STITCH,ds:DOUBLE,ls:STAMPS,rs:STAMPS,
+             paint:PAINT,outline:OUTLINE,holster:HOLSTER,hw:HW,pen:YESNO10,cord:YESNO10};
+$('shareBtn').addEventListener('click',()=>{
+  const p=new URLSearchParams();
+  for(const q in KEYS) p.set(q,state[KEYS[q]]);
+  p.set('n',state.rear);
+  const url=location.origin+location.pathname+'?'+p;
+  (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(
+    ()=>{ $('shareBtn').textContent='Link Copied!'; setTimeout(()=>$('shareBtn').textContent='Copy Design Link',1600); },
+    ()=>prompt('Copy your design link:',url));
+});
+const q=new URLSearchParams(location.search);
+if(q.has('l')){
+  for(const k in KEYS){
+    if(!q.has(k)) continue;
+    const v=parseInt(q.get(k));
+    if(!isNaN(v)) state[KEYS[k]]=Math.min(Math.max(v,0),LISTS[KEYS[k]].length-1);
+  }
+  if(q.has('n')){ state.rear=q.get('n'); $('rearIn').value=state.rear; }
+}
+// ---------------- suggested size chart ----------------
+// From the Shopify build's chart: height down the side, weight across the top.
+// M = Medium, L = Large, X = X-Large, C = Custom (outside the stock ranges, so it
+// goes in the notes). Rows are strings so the whole 14x8 grid stays checkable at
+// a glance against the source.
+const FIT_W = ['110-130','130-160','160-190','190-220','220-250','250-280','280-310','310-340'];
+const FIT_H = ['5\'4"','5\'5"','5\'6"','5\'7"','5\'8"','5\'9"','5\'10"',
+               '5\'11"','6\'0"','6\'1"','6\'2"','6\'3"','6\'4"','6\'5"'];
+const FIT = [
+  'CCCMMMMM',   // 5'4"
+  'CCCMMMLL',   // 5'5"
+  'CMMMMMLL',   // 5'6"
+  'MMMMMLLL',   // 5'7"
+  'MMMMLLLL',   // 5'8"
+  'MMMLLLLX',   // 5'9"
+  'MMMLLLLC',   // 5'10"
+  'MMMLLLXC',   // 5'11"
+  'MMLLLXXC',   // 6'0"
+  'MMLLXXXC',   // 6'1"
+  'MMLLXXCC',   // 6'2"
+  'LLLXXCCC',   // 6'3"
+  'LXXXXCCC',   // 6'4"
+  'XXXXCCCC',   // 6'5"
+];
+const FIT_NAME = {M:'Medium', L:'Large', X:'X-Large', C:'Custom'};
+const FIT_IDX  = {M:0, L:1, X:2, C:3};          // into LENGTH
+
+function buildFitChart(){
+  const t=document.createElement('table');
+  t.className='fit-tbl';
+  let h='<thead><tr><th></th>';
+  FIT_W.forEach(w=>h+='<th>'+w+'</th>');
+  h+='</tr></thead><tbody>';
+  FIT.forEach((row,r)=>{
+    h+='<tr><th>'+FIT_H[r]+'</th>';
+    [...row].forEach((c,i)=>{
+      h+='<td><button type="button" class="fit fit-'+c+'" data-len="'+FIT_IDX[c]+'"'
+       + ' title="'+FIT_H[r]+', '+FIT_W[i]+' lbs — '+FIT_NAME[c]+'">'
+       + c.replace('X','XL')+'</button></td>';
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+  t.addEventListener('click',e=>{
+    const b=e.target.closest('.fit'); if(!b) return;
+    state.length=+b.dataset.len; render(); closeGuide();
+  });
+  $('fitChart').appendChild(t);
+}
+buildFitChart();
+
+// ---------------- dialogs ----------------
+// Every .modal closes on its X, on a backdrop click and on Escape, and hands
+// focus back to whatever opened it.
+let lastOpener=null;
+function openModal(el){ lastOpener=document.activeElement; el.hidden=false;
+                        el.querySelector('.modal-x').focus(); }
+function closeModal(el){ el.hidden=true; if(lastOpener) lastOpener.focus(); }
+const closeGuide=()=>closeModal($('sizeModal'));
+document.querySelectorAll('.modal').forEach(m=>{
+  m.querySelector('.modal-x').addEventListener('click',()=>closeModal(m));
+  m.addEventListener('click',e=>{ if(e.target===m) closeModal(m); });
+});
+addEventListener('keydown',e=>{ if(e.key==='Escape')
+  document.querySelectorAll('.modal:not([hidden])').forEach(closeModal); });
+
+$('sizeGuideBtn').addEventListener('click',()=>openModal($('sizeModal')));
+
+const PAINT_STD=['assets/swatch-paint-standard.jpg','Standard paints'];
+const PHOTOS={
+  leather:{t:'Leather Colors',
+           n:'Photographed on real bridle leather. Shows the ten standard colors — the five splatter finishes are painted to order and are not on this chart.',
+           i:[['assets/swatch-leather.jpg','']]},
+  stitch :{t:'Stitching Colors',
+           n:'Real thread stitched into black leather, so you can judge it against the leather rather than a flat color chip.',
+           i:[['assets/swatch-stitching.jpg','']]},
+  paint  :{t:'Text Paint Colors',
+           n:'Hand-painted letters, photographed. Themed finishes add +$15.',
+           i:[PAINT_STD,['assets/swatch-paint-themed.jpg','Themed finishes — +$15']]},
+  outline:{t:'Text Outline Colors',
+           n:'Outlines use the same standard paints. The themed finishes are paint-only — they are not offered as an outline.',
+           i:[PAINT_STD]},
+  stamps :{t:'Stamp Catalog',
+           n:'Every stamp photographed on black leather, painted the way it ships. Pick by name in the Top and Bottom Stamp menus.',
+           i:[['assets/chart-stamps-1.jpg',''],['assets/chart-stamps-2.jpg',''],
+              ['assets/chart-stamps-3.jpg',''],['assets/chart-stamps-4.jpg','']]},
+};
+document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>{
+  const p=PHOTOS[b.dataset.photo];
+  $('photoTitle').textContent=p.t; $('photoNote').textContent=p.n;
+  $('photoBody').innerHTML=p.i.map(([src,cap])=>
+      (cap?'<h3>'+cap+'</h3>':'')
+    + '<img class="swatch-photo" src="'+src+'" alt="'+p.t+(cap?' — '+cap:'')+'">').join('');
+  openModal($('photoModal'));
+}));
+
+render();
+
+// ---------------- gallery / live preview toggle ----------------
+// The listing's real photos are the default view. The rig is supplemental:
+// it parks as a mini "See it live" thumb in the price box, and the SAME svg
+// node moves to the stage when the user opens the live view (or during the
+// one-time auto-peek). URLs come from mockup/data/products.json
+// (products_radio-strap) - re-extract regenerates that list, update here too.
+const GALLERY = [
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/792/Combo1__67396.1728580084.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/790/Combo_3__89358.1763183684.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/789/Combo_4__77894.1763183684.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/970/Wagner__87277.1763183686.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1201/Leather_Colors__64702.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1198/Paint_Colors-_Standard__52877.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1200/Paint_Colors-_Themed__33366.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1205/Stamps_pg1__75335.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1204/Stamps_pg2__97480.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1203/Stamps_pg3__10156.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1202/Stamps_pg4__70682.1784234562.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/1199/Stitching_Colors__12548.1784234561.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/395/29161AF4-5818-4A46-AF57-ABD257F3B64C__34477.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/791/Combo2__61045.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/377/IMG_0268__04981.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/974/brown__47303.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/972/Saddle_Tan__09563.1784234560.jpg',
+  'https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/112/973/camo__94636.1784234560.jpg'
+];
+(function(){
+  const stage=$('stage'), main=$('galMain'), strip=$('galThumbs'),
+        slot=$('miniSlot'), miniBtn=$('miniBtn'), artEl=$('art');
+  const miniImg=$('miniImg'), miniCta=$('miniCta');
+  let lastTile=null;
+  function applyLive(on){
+    (on?stage:slot).appendChild(artEl);
+    miniImg.style.display=on?'block':'none';
+    miniCta.innerHTML=on?'Back to<br>photos':'See it<br>live';
+  }
+  function setLive(on){
+    stage.classList.toggle('live',on);
+    applyLive(on);
+    if(on) strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
+  }
+  function select(t){
+    strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on'); lastTile=t;
+    setLive(false); main.src=t.dataset.src; miniImg.src=t.dataset.src;
+  }
+  GALLERY.forEach((u,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='gt'; b.dataset.src=u; b.setAttribute('role','tab');
+    b.innerHTML='<img loading="lazy" src="'+u+'" alt="Listing photo '+(i+1)+'">';
+    b.addEventListener('click',()=>select(b));
+    strip.appendChild(b);
+  });
+  const firstSwatchBtn=document.querySelector('[data-photo="leather"]');
+  firstSwatchBtn.classList.add('shimmer');
+  ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,
+    ()=>firstSwatchBtn.classList.remove('shimmer'),{once:true,capture:true}));
+  miniBtn.addEventListener('click',()=>{
+    if(stage.classList.contains('live')) select(lastTile||strip.children[0]);
+    else setLive(true);
+  });
+  select(strip.children[0]);          // first photo is the default view
+
+  // two fixed rows of thumbs, arrows step through the photos (with wraparound)
+  strip.style.gridTemplateColumns='repeat('+Math.ceil(GALLERY.length/2)+',1fr)';
+  function step(d){
+    const tiles=[...strip.querySelectorAll('.gt')];
+    const i=tiles.findIndex(t=>t.classList.contains('on'));
+    select(tiles[((i<0?0:i)+d+tiles.length)%tiles.length]);
+  }
+  $('arrowPrev').addEventListener('click',()=>step(-1));
+  $('arrowNext').addEventListener('click',()=>step(1));
+  document.addEventListener('keydown',e=>{
+    if(e.target.matches('input,textarea,select')||stage.classList.contains('live'))return;
+    if(e.key==='ArrowLeft')step(-1); else if(e.key==='ArrowRight')step(1);
+  });
+
+  // --- engagement: gold ripple on the See-it-live button per build change ---
+  const VIS=['leather','stitch','ds','paint','outline','holster','hw'];
+  let last=VIS.map(k=>state[k]).join();
+  const baseRender=render;
+  render=function(){
+    baseRender();
+    const now=VIS.map(k=>state[k]).join();
+    if(now===last) return;
+    last=now;
+    miniBtn.classList.remove('ping'); void miniBtn.offsetWidth; miniBtn.classList.add('ping');
+  };
+})();
+</script>
+
+</body>
+</html>

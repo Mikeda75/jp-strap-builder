@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coasters — JP Custom Leatherworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<div class="announce">Lifetime Guarantee On All Gear &nbsp;·&nbsp; Free Standard Shipping On All Orders &nbsp;·&nbsp; Handmade In Whiting, NJ</div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="../index.html">
+      <img src="../assets/jp-logo.png" alt="JP Custom Leatherworks bulldog logo">
+      <span class="logo-word">
+        <span class="bevan">JP Custom</span>
+        <span>Leatherworks</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a href="../shop.html" class="on">Our Products</a>
+      <a href="../configurator-v2.html" class="hot">Custom Radio Strap</a>
+      <a href="../about.html">About Us</a>
+      <a href="../bulk-orders.html">Bulk Orders</a>
+      <a href="../contact.html">Contact</a>
+    </nav>
+    <div class="nav-icons">
+      <a href="#">Search</a>
+      <a href="#" class="cart-pill">Cart · 0</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .guide-btn{background:transparent;border:1px solid rgba(247,184,41,.55);color:#f7b829;
+    font-family:Jost,system-ui,sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;border-radius:200px;padding:2px 9px;cursor:pointer;margin-left:10px}
+  .guide-btn:hover{background:rgba(247,184,41,.16)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;
+    justify-content:center;z-index:60;padding:20px}
+  .modal[hidden]{display:none}
+  .modal-card{background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:14px;
+    max-width:820px;width:100%;max-height:88vh;overflow:auto;padding:26px 28px;position:relative;color:#fff}
+  .modal-card h2{font-family:'Bevan',serif;color:#f7b829;font-size:1.15rem;margin:0 40px 8px 0}
+  .modal-card h3{font-family:'Jost',sans-serif;text-transform:uppercase;letter-spacing:.14em;
+    font-size:.8rem;color:#f7b829;margin:20px 0 8px}
+  .modal-note{font-size:.82rem;color:#b9b9b9;margin:0 0 14px;line-height:1.6}
+  .modal-x{position:absolute;top:14px;right:16px;background:none;border:0;color:#fff;
+    font-size:1.5rem;cursor:pointer;line-height:1}
+  .swatch-photo{width:100%;border-radius:10px;display:block;margin-bottom:14px}
+  .about-block{border-top:1px solid rgba(255,255,255,.12);margin-top:60px;padding-top:44px;max-width:840px}
+  .about-body p{font-size:.92rem;line-height:1.75;color:#cfcfcf;margin:0 0 13px}
+  .about-body strong,.about-body b{color:#fff}
+  .about-body a{color:#f7b829}
+
+  .fs-stage{background:#151515;border:1px solid rgba(255,255,255,.14);border-radius:14px;position:relative;overflow:hidden}
+  .fs-stage img#galMain{display:block;width:100%;height:auto;object-fit:contain;max-height:70vh}
+  .fs-stage.live #galMain{display:none}
+  #art{display:block;width:100%;height:auto}
+  .fs-stage svg{max-height:70vh}
+  .fs-thumbs{display:grid;gap:6px;margin-top:10px}
+  .fs-thumbs .gt{aspect-ratio:1;width:100%;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);overflow:hidden;cursor:pointer;opacity:.65;padding:0;background:#151515}
+  .fs-thumbs .gt img{width:100%;height:100%;object-fit:cover;display:block}
+  .fs-thumbs .gt.on{border-color:#f7b829;opacity:1}
+  .fs-thumbs .gt:hover{opacity:1}
+  .st-arrow{position:absolute;top:50%;transform:translateY(-50%);left:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(21,21,21,.65);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 0 3px}
+  .st-arrow.next{left:auto;right:10px}
+  .st-arrow:hover{background:#f7b829;color:#1c1500;border-color:#f7b829}
+  .fs-stage.live .st-arrow{display:none}
+  .fs-price{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding:12px 16px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:12px}
+  .fs-price-eyebrow{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#9b9b9b}
+  .fs-price .amt{font-family:'Bevan',serif;font-size:1.55rem;color:#f7b829}
+  .fs-price .brk{font-size:.74rem;color:#9b9b9b;text-align:right;line-height:1.5;max-width:46%}
+  .mini{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:#151515;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:5px 9px 5px 5px;cursor:pointer}
+  .mini-slot{width:46px;height:46px;border-radius:7px;overflow:hidden;background:#1c1c1c;display:block}
+  .mini-slot svg{max-height:46px}
+  .mini-slot img{width:100%;height:100%;object-fit:cover;display:none}
+  .mini-cta{font-family:'Jost',sans-serif;font-weight:700;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#f7b829;text-align:left;line-height:1.35}
+  .mini:hover{border-color:#f7b829}
+  @keyframes buildPing{0%{box-shadow:0 0 0 0 rgba(247,184,41,.85)}100%{box-shadow:0 0 0 14px rgba(247,184,41,0)}}
+  .ping{animation:buildPing .7s ease-out}
+  @media (max-width:960px){.fs-stage svg,.fs-stage img#galMain{max-height:56vh}}
+
+</style>
+<div class="pdp">
+  <div class="wrap">
+    <div class="crumbs" style="margin-bottom:34px"><a href="../index.html">Home</a><span class="sep">★</span><a href="../shop.html">Shop All</a><span class="sep">★</span>Coasters</div>
+    <div class="pdp-grid">
+
+      <div class="pdp-gallery">
+        <div class="fs-stage" id="stage">
+          <img id="galMain" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/524/DSC_0020__85026.1596066075.jpg" alt="Coasters">
+
+          <button type="button" class="st-arrow" id="arrowPrev" aria-label="Previous photo">&#8249;</button>
+          <button type="button" class="st-arrow next" id="arrowNext" aria-label="Next photo">&#8250;</button>
+        </div>
+        <div class="fs-thumbs" id="galThumbs" style="grid-template-columns:repeat(8,1fr)">
+          <button type="button" class="gt on" data-src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/524/DSC_0020__85026.1596066075.jpg"><img loading="lazy" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/524/DSC_0020__85026.1596066075.jpg" alt="Coasters photo 1"></button>
+          <button type="button" class="gt" data-src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/523/IMG_0369__72957.1596066070.jpg"><img loading="lazy" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/523/IMG_0369__72957.1596066070.jpg" alt="Coasters photo 2"></button>
+          <button type="button" class="gt" data-src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/522/IMG_0370__88751.1596066070.jpg"><img loading="lazy" src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/139/522/IMG_0370__88751.1596066070.jpg" alt="Coasters photo 3"></button>
+        </div>
+        <div class="fs-price">
+          <div><span class="fs-price-eyebrow">Your build</span><br><span class="amt" id="price">$19.99</span></div>
+          <div class="brk" id="priceBrk">Base $19.99</div>
+        </div>
+      </div>
+
+      <div class="pdp-info">
+        <span class="eyebrow">From The Bench</span>
+        <h1 class="bevan" style="margin-top:10px">Coasters</h1>
+
+        <div class="pdp-rating"><span class="stars">★★★★★</span>Handmade to order in Whiting, NJ</div>
+        
+        <p class="pdp-desc">Coasters made from 12-14oz. english bridle leather. Our coasters come in sets of 4 or 10. If you would like to request a custom painted coaster…</p>
+        <div class="pdp-form">
+    <div class="opt-block">
+      <div class="opt-name">01 — Leather Color <b>· Required</b> <button type="button" class="guide-btn" data-photo="leather"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
+      <div class="sw-grid" data-role="leather">
+        <button type="button" class="sw-item on" data-g="o1" data-price="0" data-hex="#20191a" title="Black"><span class="dot" style="background:#20191a"></span><span class="lab">Black</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#5b3416" title="Brown"><span class="dot" style="background:#5b3416"></span><span class="lab">Brown</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#b3814a" title="Saddle Tan"><span class="dot" style="background:#b3814a"></span><span class="lab">Saddle Tan</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#63241c" title="Mahogany"><span class="dot" style="background:#63241c"></span><span class="lab">Mahogany</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#b3201f" title="Fire Truck Red"><span class="dot" style="background:#b3201f"></span><span class="lab">Fire Truck Red</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#f2efe8" title="White"><span class="dot" style="background:#f2efe8"></span><span class="lab">White</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#7c7c7c" title="Gray"><span class="dot" style="background:#7c7c7c"></span><span class="lab">Gray</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#2f5130" title="Green"><span class="dot" style="background:#2f5130"></span><span class="lab">Green</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#23439c" title="Royal Blue"><span class="dot" style="background:#23439c"></span><span class="lab">Royal Blue</span></button>
+        <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#e58fb0" title="Pink"><span class="dot" style="background:#e58fb0"></span><span class="lab">Pink</span></button>
+      </div>
+    </div>
+    <div class="opt-block">
+      <div class="opt-name">02 — Set Size</div>
+      <div class="swatches">
+        <div class="chip on" data-g="o2" data-price="0" title="4">4</div>
+        <div class="chip" data-g="o2" data-price="15.0" title="10">10<b>+$15</b></div>
+      </div>
+    </div>
+    <div class="opt-block">
+      <div class="opt-name">03 — Stitching Color <b>· Required</b> <button type="button" class="guide-btn" data-photo="stitch"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
+      <div class="sw-grid" data-role="stitch">
+        <button type="button" class="sw-item on" data-g="o3" data-price="0" title="None"><span class="dot" style="background:repeating-linear-gradient(45deg,#3a3a3a 0 4px,#2b2b2b 4px 8px)"></span><span class="lab">None</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="groove" title="Grooved"><span class="dot" style="background:repeating-linear-gradient(90deg,#4a4038 0 3px,#2f2823 3px 6px)"></span><span class="lab">Grooved</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#20191a" title="Black"><span class="dot" style="background:#20191a"></span><span class="lab">Black</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#f2efe8" title="White"><span class="dot" style="background:#f2efe8"></span><span class="lab">White</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#c0231f" title="Red"><span class="dot" style="background:#c0231f"></span><span class="lab">Red</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#7a1a18" title="Dark Red"><span class="dot" style="background:#7a1a18"></span><span class="lab">Dark Red</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#e2701a" title="Orange"><span class="dot" style="background:#e2701a"></span><span class="lab">Orange</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#f2c53d" title="Yellow"><span class="dot" style="background:#f2c53d"></span><span class="lab">Yellow</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#2f5130" title="Green"><span class="dot" style="background:#2f5130"></span><span class="lab">Green</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#5b6238" title="OD Green"><span class="dot" style="background:#5b6238"></span><span class="lab">OD Green</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#2fbfb0" title="Turquoise"><span class="dot" style="background:#2fbfb0"></span><span class="lab">Turquoise</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#2255a4" title="Blue"><span class="dot" style="background:#2255a4"></span><span class="lab">Blue</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#6a3b9e" title="Purple"><span class="dot" style="background:#6a3b9e"></span><span class="lab">Purple</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#a888d6" title="Light Purple"><span class="dot" style="background:#a888d6"></span><span class="lab">Light Purple</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#ff2d84" title="Neon Pink"><span class="dot" style="background:#ff2d84"></span><span class="lab">Neon Pink</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#e83f8f" title="Hot Pink"><span class="dot" style="background:#e83f8f"></span><span class="lab">Hot Pink</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#f3b6c8" title="Light Pink"><span class="dot" style="background:#f3b6c8"></span><span class="lab">Light Pink</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#5b3416" title="Brown"><span class="dot" style="background:#5b3416"></span><span class="lab">Brown</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#c8a642" title="Gold"><span class="dot" style="background:#c8a642"></span><span class="lab">Gold</span></button>
+        <button type="button" class="sw-item" data-g="o3" data-price="0" data-hex="#c4c7cb" title="Silver"><span class="dot" style="background:#c4c7cb"></span><span class="lab">Silver</span></button>
+      </div>
+    </div>
+    <div class="opt-block">
+      <div class="opt-name">04 — Top Stamp <b>· Required</b> <button type="button" class="guide-btn" data-photo="stamps"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>See Photo Swatches</button></div>
+      <select class="text-in opt-sel">
+        <option value="">Choose Options</option>
+        <option data-price="0">None</option>
+        <option data-price="0">Fire Department Maltese Cross</option>
+        <option data-price="0">Maltese Cross</option>
+        <option data-price="0">Thin Red Line Maltese Cross</option>
+        <option data-price="0">FD Maltese Cross</option>
+        <option data-price="0">American Flag Maltese Cross</option>
+        <option data-price="0">IAFF Maltese Cross</option>
+        <option data-price="0">NJ FMBA</option>
+        <option data-price="0">343 Maltese Cross</option>
+        <option data-price="0">9/11 Pentagon Maltese Cross</option>
+        <option data-price="0">Maltese/ Star of Life</option>
+        <option data-price="0">Star of Life</option>
+        <option data-price="0">Firefighter</option>
+        <option data-price="0">Scramble Logo</option>
+        <option data-price="0">FD Skull</option>
+        <option data-price="0">Crossing Axes</option>
+        <option data-price="0">The Irons</option>
+        <option data-price="0">Fire Hydrant</option>
+        <option data-price="0">Closed Jaws</option>
+        <option data-price="0">Open Jaws</option>
+        <option data-price="0">Rescue 8</option>
+        <option data-price="0">Torch and Axes</option>
+        <option data-price="0">NFPA 704</option>
+        <option data-price="0">1 Vertical Bugle</option>
+        <option data-price="0">2 Vertical Bugles</option>
+        <option data-price="0">2 Crossed Bugles</option>
+        <option data-price="0">3 Crossed Bugles</option>
+        <option data-price="0">4 Crossed Bugles</option>
+        <option data-price="0">5 Crossed Bugles</option>
+        <option data-price="0">5 Year Badge</option>
+        <option data-price="0">10 Year Badge</option>
+        <option data-price="0">Police Badge</option>
+        <option data-price="0">U.S. Army</option>
+        <option data-price="0">Air Force</option>
+        <option data-price="0">Anchor</option>
+        <option data-price="0">Marine Corps EGA</option>
+        <option data-price="0">Jump Wings</option>
+        <option data-price="0">Combat Infantry</option>
+        <option data-price="0">Live To Ride</option>
+        <option data-price="0">American Flag</option>
+        <option data-price="0">Thin Red Line Flag</option>
+        <option data-price="0">Waving American Flag</option>
+        <option data-price="0">Waving Thin Red Line Flag</option>
+        <option data-price="0">Vertical American Flag</option>
+        <option data-price="0">Vertical Thin Red Line Flag</option>
+        <option data-price="0">American Axe Flag</option>
+        <option data-price="0">Tattered Thin Red Line Flag</option>
+        <option data-price="0">Eagle Thin Red Line Flag</option>
+        <option data-price="0">Punisher Skull Flag</option>
+        <option data-price="0">Punisher Skull Thin Red Line</option>
+        <option data-price="0">Dive Flag</option>
+        <option data-price="0">Canadian Flag</option>
+        <option data-price="0">Texas Flag</option>
+        <option data-price="0">Union Jack Flag</option>
+        <option data-price="0">Puerto Rican Flag</option>
+        <option data-price="0">Mexican Flag</option>
+        <option data-price="0">Guatemalan Flag</option>
+        <option data-price="0">French Flag</option>
+        <option data-price="0">Irish Flag</option>
+        <option data-price="0">Italian Flag</option>
+        <option data-price="0">Hungarian Flag</option>
+        <option data-price="0">Austrian Flag</option>
+        <option data-price="0">German Flag</option>
+        <option data-price="0">Russian Flag</option>
+        <option data-price="0">Norwegian Flag</option>
+        <option data-price="0">South African Flag</option>
+        <option data-price="0">Jamaican Flag</option>
+        <option data-price="0">South Korean Flag</option>
+        <option data-price="0">Japanese Flag</option>
+        <option data-price="0">Ukrainian Flag</option>
+        <option data-price="0">American/ Japanese Flag</option>
+        <option data-price="0">USA</option>
+        <option data-price="0">Cross</option>
+        <option data-price="0">Decorative Cross</option>
+        <option data-price="0">Orthodox Cross</option>
+        <option data-price="0">Ichthys Symbol</option>
+        <option data-price="0">Celtic Knot</option>
+        <option data-price="0">Fleur-de-lis</option>
+        <option data-price="0">12 Gauge Shot Gun Shell</option>
+        <option data-price="0">Baseball Bats &amp; Balls</option>
+        <option data-price="0">Baseball</option>
+        <option data-price="0">Soccer Ball</option>
+        <option data-price="0">Bulldog</option>
+        <option data-price="0">Smiley Face</option>
+        <option data-price="0">Radioactive Symbol</option>
+        <option data-price="0">Doughnut</option>
+        <option data-price="0">420 Leaf</option>
+        <option data-price="0">Feather</option>
+        <option data-price="0">Fighting Irish</option>
+        <option data-price="0">4 Leaf Clover</option>
+        <option data-price="0">Skull and Cross Bones</option>
+        <option data-price="0">Sugar Skull</option>
+        <option data-price="0">Lips</option>
+        <option data-price="0">Lady Bug</option>
+        <option data-price="0">Eagle Head</option>
+        <option data-price="0">Eagle</option>
+        <option data-price="0">Long Horn</option>
+        <option data-price="0">Cowboy</option>
+        <option data-price="0">Wolf</option>
+        <option data-price="0">Paw Prints</option>
+        <option data-price="0">Bear</option>
+        <option data-price="0">Rooster</option>
+        <option data-price="0">Goose</option>
+        <option data-price="0">Mustache</option>
+        <option data-price="0">Spade</option>
+        <option data-price="0">Flower</option>
+        <option data-price="0">Dollar Sign</option>
+        <option data-price="0">Question Mark</option>
+        <option data-price="0">Exclamation Point</option>
+        <option data-price="0">Star</option>
+        <option data-price="0">Music Note</option>
+        <option data-price="0">Heart</option>
+        <option data-price="0">Autism Awareness Puzzle Piece</option>
+        <option data-price="0">Autism Awareness Ribbon</option>
+        <option data-price="0">Breast Cancer Awareness Ribbon</option>
+        <option data-price="0">Suicide Prevention Ribbon</option>
+        <option data-price="0">Awareness Ribbon (Put Color In Notes)</option>
+      </select>
+    </div>
+    <div class="opt-block">
+      <div class="opt-name">05 — Paint Request</div>
+      <div class="swatches">
+        <div class="chip on" data-g="o5" data-price="0" title="No">No</div>
+        <div class="chip" data-g="o5" data-price="15.0" title="Yes">Yes<b>+$15</b></div>
+      </div>
+    </div>
+    <div class="opt-block">
+      <div class="opt-name">06 — Notes/Paint Request</div>
+      <input class="text-in" type="text" placeholder="Leave blank for none">
+    </div>
+        </div>
+        <div class="pdp-cta">
+          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$19.99</span></a>
+        </div>
+        <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
+      </div>
+    </div>
+
+    <div class="about-block">
+      <span class="eyebrow">From The Listing</span>
+      <h2 class="bevan" style="font-size:clamp(20px,2.2vw,28px)">About The Coasters</h2>
+      <div class="about-body"><p><span>Coasters made from 12-14oz. english bridle leather. Our coasters come in sets of 4 or 10. If you would like to request a custom painted coaster please include what would like in the notes section. We can also do custom logos upon request.</span></p></div>
+      <div class="pdp-details"><h3>Details</h3><table class="size-table">
+          <tr><th>SKU</th><td>0124</td></tr>
+        </table></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:70px"><div>
+      <span class="eyebrow">Keep Browsing</span>
+      <h2 class="bevan" style="font-size:clamp(24px,2.6vw,34px)">More From The Bench</h2>
+    </div></div>
+    <div class="prods">
+      <a class="prod" href="../p/anti-sway-strap.html" data-cat="straps" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/124/448/993DF38F-7226-499D-A7BD-94D2D7D37322__66058.1595191126.jpg" alt="Anti-Sway Strap" loading="lazy"></div>
+        <div class="prod-info"><h3>Anti-Sway Strap</h3><div class="price">$16.99</div><small>JP Custom Leatherworks anti-sway straps are a great way to keep your strap in place.…</small></div>
+      </a>
+      <a class="prod" href="../p/key-fob.html" data-cat="everyday" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/136/520/IMG_0325__43603.1596065866.jpg" alt="Key Fob" loading="lazy"></div>
+        <div class="prod-info"><h3>Key Fob</h3><div class="price">$14.99</div><small>Our key fobs are made with 8-10oz english bridal leather and assembled with nickel…</small></div>
+      </a>
+      <a class="prod" href="../p/helmet-card.html" data-cat="helmet" data-speed="mto">
+        <div class="prod-img"><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/191/705/D61DBB4B-1EA9-4A17-9098-D9B51E918A35__24040.1714941054.jpg" alt="Helmet Card" loading="lazy"></div>
+        <div class="prod-info"><h3>Helmet Card</h3><div class="price">$24.99</div><small>Our helmet cards have arrived at last! Although these cards are fairly…</small></div>
+      </a>
+      <a class="prod" href="../p/valet-tray.html" data-cat="everyday" data-speed="rts">
+        <div class="prod-img"><span class="tag dark">Ready To Ship</span><img src="https://cdn11.bigcommerce.com/s-ufsq482epr/images/stencil/1280x1280/products/153/575/IMG_2331__39799.1604467981.jpg" alt="Valet Tray" loading="lazy"></div>
+        <div class="prod-info"><h3>Valet Tray</h3><div class="price">$24.99</div><small>Leather Valet Tray Our valet trays are a must have! Keep one on your nightstand, one at…</small></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="photoModal" role="dialog" aria-modal="true" aria-labelledby="photoTitle" hidden>
+  <div class="modal-card">
+    <button type="button" class="modal-x" aria-label="Close">&times;</button>
+    <h2 id="photoTitle"></h2>
+    <p class="modal-note" id="photoNote"></p>
+    <div id="photoBody"></div>
+  </div>
+</div>
+
+<script>
+  // photo swatch dialog - same charts the strap builder uses
+  const PHOTOS = {
+    leather:{t:'Leather Colors', n:'Photographed on real bridle leather. Shows the ten standard colors — splatter finishes are painted to order.',
+             i:[['../assets/swatch-leather.jpg','']]},
+    stitch :{t:'Stitching Colors', n:'Real thread stitched into black leather, so you can judge it against the leather rather than a flat chip.',
+             i:[['../assets/swatch-stitching.jpg','']]},
+    paint  :{t:'Text Paint Colors', n:'Hand-painted letters, photographed. Themed finishes add +$15 where offered.',
+             i:[['../assets/swatch-paint-standard.jpg','Standard paints'],['../assets/swatch-paint-themed.jpg','Themed finishes']]},
+    outline:{t:'Text Outline Colors', n:'Outlines use the standard paints.',
+             i:[['../assets/swatch-paint-standard.jpg','']]},
+    stamps :{t:'Stamp Catalog', n:'Every stamp photographed on black leather, painted the way it ships.',
+             i:[['../assets/chart-stamps-1.jpg',''],['../assets/chart-stamps-2.jpg',''],
+                ['../assets/chart-stamps-3.jpg',''],['../assets/chart-stamps-4.jpg','']]},
+  };
+  const pModal=document.getElementById('photoModal');
+  document.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>{
+    const p=PHOTOS[b.dataset.photo]; if(!p) return;
+    document.getElementById('photoTitle').textContent=p.t;
+    document.getElementById('photoNote').textContent=p.n;
+    document.getElementById('photoBody').innerHTML=p.i.map(([src,cap])=>
+        (cap?'<h3>'+cap+'</h3>':'')+'<img class="swatch-photo" loading="lazy" src="'+src+'" alt="'+p.t+'">').join('');
+    pModal.hidden=false;
+  }));
+  pModal.addEventListener('click',e=>{
+    if(e.target===pModal||e.target.closest('.modal-x')) pModal.hidden=true;
+  });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') pModal.hidden=true; });
+
+  // gallery
+  document.querySelectorAll('#thumbs .th').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('#thumbs .th').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('mainImg').src = t.dataset.src;
+  }));
+  // chip groups + price total
+  const BASE = 19.99;
+  function total(){
+    let t = BASE;
+    document.querySelectorAll('.chip.on[data-price], .sw-item.on[data-price]').forEach(c => t += +c.dataset.price);
+    document.querySelectorAll('select.opt-sel').forEach(s => {
+      const o = s.selectedOptions[0];
+      if (o && o.dataset.price) t += +o.dataset.price;
+    });
+    const s = '$' + (Math.round(t * 100) / 100).toFixed(2).replace(/\.00$/, '');
+    document.getElementById('price').textContent = s;
+    const c = document.getElementById('ctaPrice');
+    if (c) c.textContent = s;
+  }
+  document.querySelectorAll('.pdp-form .chip[data-g], .pdp-form .sw-item[data-g]').forEach(ch => ch.addEventListener('click', () => {
+    document.querySelectorAll('.pdp-form [data-g="' + ch.dataset.g + '"]')
+      .forEach(x => x.classList.remove('on'));
+    ch.classList.add('on');
+    total();
+  }));
+  document.querySelectorAll('.pdp-form .chip[data-toggle]').forEach(ch =>
+    ch.addEventListener('click', () => { ch.classList.toggle('on'); total(); }));
+  document.querySelectorAll('select.opt-sel').forEach(s => s.addEventListener('change', total));
+  total();
+
+  // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
+  (function(){
+    const stage=document.getElementById('stage'), main=document.getElementById('galMain'),
+          strip=document.getElementById('galThumbs');
+    window.gSelect=function(t){
+      strip.querySelectorAll('.gt').forEach(x=>x.classList.remove('on'));
+      t.classList.add('on'); window.gLast=t;
+      if(window.gExitLive) gExitLive();
+      main.src=t.dataset.src;
+      const mi=document.getElementById('miniImg'); if(mi) mi.src=t.dataset.src;
+    };
+    strip.querySelectorAll('.gt').forEach(b=>b.addEventListener('click',()=>gSelect(b)));
+    if(strip.children.length) gSelect(strip.children[0]);
+    function step(d){
+      const tiles=[...strip.querySelectorAll('.gt')];
+      const i=tiles.findIndex(t=>t.classList.contains('on'));
+      gSelect(tiles[((i<0?0:i)+d+tiles.length)%tiles.length]);
+    }
+    const ap=document.getElementById('arrowPrev'), an=document.getElementById('arrowNext');
+    if(ap) ap.addEventListener('click',()=>step(-1));
+    if(an) an.addEventListener('click',()=>step(1));
+
+    const brkEl=document.getElementById('priceBrk'), baseTxt=brkEl.textContent;
+    const baseTotal=total;
+    total=function(){
+      baseTotal();
+      const picks=[];
+      document.querySelectorAll('.pdp-form .chip.on[data-price], .pdp-form .sw-item.on[data-price]')
+        .forEach(c=>{ if(+c.dataset.price>0) picks.push(c.textContent.trim()); });
+      document.querySelectorAll('select.opt-sel').forEach(s=>{
+        const o=s.selectedOptions[0];
+        if(o&&+o.dataset.price>0) picks.push(o.textContent.trim());
+      });
+      brkEl.innerHTML=[baseTxt].concat(picks.map(t=>'+ '+t)).join('<br>');
+    };
+    total();
+  })();
+
+</script>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="../index.html"><img src="../assets/jp-logo.png" alt="JP Custom Leatherworks logo"></a>
+        <p>Family owned &amp; operated. Handcrafted Fire &amp; EMS leather gear, made in Whiting, New Jersey.</p>
+        <p style="margin-top:14px">108 Lacey Rd, STE 12<br>Whiting, NJ 08759<br>(609) 367-2479</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="../shop.html">Fire &amp; EMS Gear</a></li>
+          <li><a href="../shop.html">Quick Ship Series</a></li>
+          <li><a href="../shop.html">Ready to Ship</a></li>
+          <li><a href="../shop.html">Leather Goods</a></li>
+          <li><a href="../configurator-v2.html">Custom Radio Strap</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="../about.html">About Us</a></li>
+          <li><a href="../about.html">Mission &amp; Values</a></li>
+          <li><a href="../bulk-orders.html">Bulk Orders</a></li>
+          <li><a href="../contact.html">Leather Care</a></li>
+          <li><a href="../contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Stay In The Loop</h4>
+        <p style="margin-top:0">New gear drops, giveaways, and behind-the-bench photos from the shop.</p>
+        <div class="news-in">
+          <input type="email" placeholder="Email address">
+          <button type="button">Join</button>
+        </div>
+      </div>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 JP Custom Leatherworks. All rights reserved.</span>
+      <span>Family Owned &amp; Operated · Handmade In Whiting, NJ</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
