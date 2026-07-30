@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/site.css">
+<script>window.SHOPIFY_CFG={"store": "jp-leatherworks-dev", "apiVersion": "2026-07", "token": "a8c6e1e8ebba069c9a18929340238e01"}</script>
+<script src="../assets/cart.js" defer></script>
 </head>
 <body>
 
@@ -141,21 +143,21 @@
         
         <p class="pdp-desc">The RagTop Extrication Mitts are your go-to lightweight, breathable, cut-resistant and low-profile firefighter auto extrication / technical rescue…</p>
         <div class="pdp-form">
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Size">
       <div class="opt-name">01 — Size <b>· Required</b></div>
       <select class="text-in opt-sel">
         <option value="">Choose Options</option>
-        <option data-price="0">XX-Small</option>
-        <option data-price="0">X-Small</option>
-        <option data-price="0">Small</option>
-        <option data-price="0">Medium</option>
-        <option data-price="0">Large</option>
-        <option data-price="0">X-Large</option>
-        <option data-price="0">XX-Large</option>
-        <option data-price="0">XXX-Large</option>
+        <option data-price="0" data-label="XX-Small">XX-Small</option>
+        <option data-price="0" data-label="X-Small">X-Small</option>
+        <option data-price="0" data-label="Small">Small</option>
+        <option data-price="0" data-label="Medium">Medium</option>
+        <option data-price="0" data-label="Large">Large</option>
+        <option data-price="0" data-label="X-Large">X-Large</option>
+        <option data-price="0" data-label="XX-Large">XX-Large</option>
+        <option data-price="0" data-label="XXX-Large">XXX-Large</option>
       </select>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Type">
       <div class="opt-name">02 — Type <b>· Required</b></div>
       <div class="swatches">
         <div class="chip on" data-g="o2" data-price="0" title="Extrication Mitts">Extrication Mitts</div>
@@ -164,7 +166,7 @@
     </div>
         </div>
         <div class="pdp-cta">
-          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$55</span></a>
+          <a class="btn btn-gold" id="addToCart" href="#" onclick="return false" data-variant="gid://shopify/ProductVariant/48398043349204">Add To Cart — <span id="ctaPrice">$55</span></a>
         </div>
         <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
       </div>
@@ -343,6 +345,48 @@
   document.addEventListener('click', () =>
     document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
+
+  // ---- Add To Cart -> Shopify cart (cart.js) ----
+  (function(){
+    const cta = document.getElementById('addToCart');
+    if (!cta || !cta.dataset.variant) return;
+    const ADDONS = {};
+    const TITLE = "RAGTOP Gloves";
+    function clean(s){ return s.replace(/\s*\+\$[\d.]+\s*$/, '').trim(); }
+    cta.addEventListener('click', function(e){
+      e.preventDefault();
+      if (!window.JPCart || !window.SHOPIFY_CFG) return;
+      const attrs = [], extra = [], seen = {};
+      document.querySelectorAll('.pdp-form .opt-block').forEach(function(b){
+        let name = b.dataset.opt; if (!name) return;
+        let label = null;
+        const sel = b.querySelector('select.opt-sel');
+        const inp = b.querySelector('input.text-in');
+        const on = b.querySelector('.dd-opt.on, .sw-item.on, .chip.on');
+        if (sel) {
+          const o = sel.selectedOptions[0];
+          label = o && o.dataset.label ? o.dataset.label : null;
+        } else if (inp) {
+          const v = inp.value.trim();
+          label = v && v !== '0' ? v : null;
+        } else if (on) {
+          label = on.getAttribute('title') || clean(on.textContent);
+        }
+        if (!label) return;
+        if (seen[name]) name += ' (2)';
+        seen[name] = 1;
+        attrs.push({key: name, value: label});
+        const gid = ADDONS[b.dataset.opt + ': ' + label];
+        if (gid) extra.push({merchandiseId: gid, quantity: 1,
+                             attributes: [{key: 'For', value: TITLE}]});
+      });
+      cta.style.opacity = .6;
+      JPCart.add([{merchandiseId: cta.dataset.variant, quantity: 1,
+                   attributes: attrs}].concat(extra))
+        .then(function(){ cta.style.opacity = ''; });
+    });
+  })();
+
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
   (function(){

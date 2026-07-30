@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/site.css">
+<script>window.SHOPIFY_CFG={"store": "jp-leatherworks-dev", "apiVersion": "2026-07", "token": "a8c6e1e8ebba069c9a18929340238e01"}</script>
+<script src="../assets/cart.js" defer></script>
 </head>
 <body>
 
@@ -142,29 +144,29 @@
         
         <p class="pdp-desc">Please be sure the image file you are uploading is the highest quality possible. Photos taken with a camera can not be used. This includes screen…</p>
         <div class="pdp-form">
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Specify Product and Location you would like to add your stamp to">
       <div class="opt-name">01 — Specify Product and Location you would like to add your stamp to <b>· Required</b></div>
       <input class="text-in" type="text" placeholder="">
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Image or Logo Upload (NO PATCHES/SCREENSHOTS/BURRY IMAGES)">
       <div class="opt-name">02 — Image or Logo Upload (NO PATCHES/SCREENSHOTS/BURRY IMAGES) <b>· Required</b></div>
       <div class="opt-help">Artwork upload — we&rsquo;ll arrange the file transfer by email after checkout.</div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="I HAVE PERMISSION TO USE THE IMAGE I AM REQUESTING TO HAVE ADDED TO MY ORDER">
       <div class="opt-name">03 — I HAVE PERMISSION TO USE THE IMAGE I AM REQUESTING TO HAVE ADDED TO MY ORDER <b>· Required</b></div>
       <div class="swatches"><div class="chip" data-toggle data-price="0"></div></div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Order Number ( If adding to a pending order)">
       <div class="opt-name">04 — Order Number ( If adding to a pending order)</div>
       <input class="text-in" type="text" placeholder="Leave blank for none">
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Notes">
       <div class="opt-name">05 — Notes</div>
       <input class="text-in" type="text" placeholder="Leave blank for none">
     </div>
         </div>
         <div class="pdp-cta">
-          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$35</span></a>
+          <a class="btn btn-gold" id="addToCart" href="#" onclick="return false" data-variant="gid://shopify/ProductVariant/48398035353812">Add To Cart — <span id="ctaPrice">$35</span></a>
         </div>
         <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
       </div>
@@ -304,6 +306,48 @@
   document.addEventListener('click', () =>
     document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
+
+  // ---- Add To Cart -> Shopify cart (cart.js) ----
+  (function(){
+    const cta = document.getElementById('addToCart');
+    if (!cta || !cta.dataset.variant) return;
+    const ADDONS = {};
+    const TITLE = "Custom Stamp";
+    function clean(s){ return s.replace(/\s*\+\$[\d.]+\s*$/, '').trim(); }
+    cta.addEventListener('click', function(e){
+      e.preventDefault();
+      if (!window.JPCart || !window.SHOPIFY_CFG) return;
+      const attrs = [], extra = [], seen = {};
+      document.querySelectorAll('.pdp-form .opt-block').forEach(function(b){
+        let name = b.dataset.opt; if (!name) return;
+        let label = null;
+        const sel = b.querySelector('select.opt-sel');
+        const inp = b.querySelector('input.text-in');
+        const on = b.querySelector('.dd-opt.on, .sw-item.on, .chip.on');
+        if (sel) {
+          const o = sel.selectedOptions[0];
+          label = o && o.dataset.label ? o.dataset.label : null;
+        } else if (inp) {
+          const v = inp.value.trim();
+          label = v && v !== '0' ? v : null;
+        } else if (on) {
+          label = on.getAttribute('title') || clean(on.textContent);
+        }
+        if (!label) return;
+        if (seen[name]) name += ' (2)';
+        seen[name] = 1;
+        attrs.push({key: name, value: label});
+        const gid = ADDONS[b.dataset.opt + ': ' + label];
+        if (gid) extra.push({merchandiseId: gid, quantity: 1,
+                             attributes: [{key: 'For', value: TITLE}]});
+      });
+      cta.style.opacity = .6;
+      JPCart.add([{merchandiseId: cta.dataset.variant, quantity: 1,
+                   attributes: attrs}].concat(extra))
+        .then(function(){ cta.style.opacity = ''; });
+    });
+  })();
+
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
   (function(){

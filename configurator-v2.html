@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
+<!-- SHOPIFY:BEGIN — config injected by build-site.py from shopify-map.json; do not hand-edit -->
+<script>window.SHOPIFY_CFG={"store": "jp-leatherworks-dev", "apiVersion": "2026-07", "token": "a8c6e1e8ebba069c9a18929340238e01"};window.CRS={"variant": "gid://shopify/ProductVariant/48398042202324", "addons": {"Add Pen Loop: Yes": "gid://shopify/ProductVariant/48398183039188", "Add Radio Holster and Anti-Sway Strap: Yes- \"Trauma\" Holster": "gid://shopify/ProductVariant/48398182875348", "Add Radio Holster and Anti-Sway Strap: Yes- Extended Battery \"Trauma\" Holster": "gid://shopify/ProductVariant/48398182908116", "Add Radio Holster and Anti-Sway Strap: Yes- Extended Battery Holster": "gid://shopify/ProductVariant/48398182809812", "Add Radio Holster and Anti-Sway Strap: Yes- Standard Holster": "gid://shopify/ProductVariant/48398182777044", "Add Radio Holster and Anti-Sway Strap: Yes- Wide \"Trauma\" Holster": "gid://shopify/ProductVariant/48398182940884", "Add Radio Holster and Anti-Sway Strap: Yes- Wide Extended Battery \"Trauma\" Holster": "gid://shopify/ProductVariant/48398182973652", "Add Radio Holster and Anti-Sway Strap: Yes- Wide Holster": "gid://shopify/ProductVariant/48398182842580", "Add Two Cord Keepers: Yes": "gid://shopify/ProductVariant/48398183071956", "Double Stitch: Yes": "gid://shopify/ProductVariant/48398182285524", "Hardware Color: Solid Brass": "gid://shopify/ProductVariant/48398183006420", "Leather Color: Black- Neon Splatter Paint": "gid://shopify/ProductVariant/48398182154452", "Leather Color: Black- Red Splatter Paint": "gid://shopify/ProductVariant/48398182219988", "Leather Color: Black- Red, White and Blue Splatter Paint": "gid://shopify/ProductVariant/48398182187220", "Leather Color: Custom Splatter Paint- Add Leather Color and Paint Colors to Notes": "gid://shopify/ProductVariant/48398182252756", "Leather Color: White- Neon Splatter Paint": "gid://shopify/ProductVariant/48398182121684", "Text Paint Color: American Flag": "gid://shopify/ProductVariant/48398182318292", "Text Paint Color: Blue Camouflage": "gid://shopify/ProductVariant/48398182514900", "Text Paint Color: Blue Flames": "gid://shopify/ProductVariant/48398182744276", "Text Paint Color: Cow Print": "gid://shopify/ProductVariant/48398182416596", "Text Paint Color: Dripping Blood": "gid://shopify/ProductVariant/48398182449364", "Text Paint Color: Green Camouflage": "gid://shopify/ProductVariant/48398182482132", "Text Paint Color: Irish Flag": "gid://shopify/ProductVariant/48398182383828", "Text Paint Color: Neon Tie Dye": "gid://shopify/ProductVariant/48398182613204", "Text Paint Color: Orange Flames": "gid://shopify/ProductVariant/48398182711508", "Text Paint Color: Pink Camouflage": "gid://shopify/ProductVariant/48398182547668", "Text Paint Color: Red Flames": "gid://shopify/ProductVariant/48398182678740", "Text Paint Color: Red, White, & Blue Camouflage": "gid://shopify/ProductVariant/48398182580436", "Text Paint Color: Red, White, & Blue Tie Dye": "gid://shopify/ProductVariant/48398182645972", "Text Paint Color: Thin Red Line Flag": "gid://shopify/ProductVariant/48398182351060"}}</script>
+<script src="assets/cart.js" defer></script>
+<!-- SHOPIFY:END -->
 <style>
   /* ---- configurator layout ---- */
   .cfg{padding:46px 0 90px}
@@ -688,7 +692,7 @@
           <div class="brk" id="priceBrk">Base strap $114.99</div>
         </div>
         <div class="cfg-actions">
-          <button type="button" class="gold" onclick="alert('Online checkout is coming soon — call (609) 367-2479 to order your custom rig.')">Add To Cart</button>
+          <button type="button" class="gold" id="addToCart">Add To Cart</button>
           <button type="button" id="shareBtn">Copy Design Link</button>
         </div>
         <div class="zoombar">
@@ -1379,6 +1383,46 @@ function render(){
   $('g-holster').value=state.holster;
   document.querySelectorAll('[data-view]').forEach(c=>c.classList.toggle('on',c.dataset.view===state.view));
 }
+
+// ---------------- add to cart ----------------
+// window.CRS = {variant, addons} is injected next to SHOPIFY_CFG by
+// build-site.py: the flagship listing's variant GID plus its add-on variant
+// GIDs keyed "Group: Label". Every pick becomes a line item attribute (Joe's
+// order screen shows the full spec); priced picks add their hidden add-on
+// variant as an extra cart line so the checkout total matches the builder's.
+$('addToCart').addEventListener('click',()=>{
+  if(!window.JPCart||!window.CRS){
+    alert('Online checkout is coming soon — call (609) 367-2479 to order your custom rig.');
+    return;
+  }
+  const picks=[
+    ['Leather Color', LEATHER[state.leather].n],
+    ['Radio Strap Length', LENGTH[state.length].n],
+    ['Stitching Color', STITCH[state.stitch].n],
+    ['Double Stitch', state.ds===1?'Yes':'No'],
+    ['Top Stamp', STAMPS[state.ls].n],
+    ['Bottom Stamp', STAMPS[state.rs].n],
+    ['Rear Text', state.rear||'None'],
+    ['Text Paint Color', PAINT[state.paint].n],
+    ['Text Outline Color', OUTLINE[state.outline].n],
+    ['Add Radio Holster and Anti-Sway Strap', HOLSTER[state.holster].n],
+    ['Hardware Color', HW[state.hw].n],
+    ['Add Pen Loop', YESNO10[state.pen].n],
+    ['Add Two Cord Keepers', YESNO10[state.cord].n],
+  ];
+  if(state.notes.trim()) picks.push(['Notes', state.notes.trim()]);
+  const attrs=picks.map(([k,v])=>({key:k, value:v}));
+  const extra=[];
+  picks.forEach(([k,v])=>{
+    const gid=window.CRS.addons[k+': '+v];
+    if(gid) extra.push({merchandiseId:gid, quantity:1,
+                        attributes:[{key:'For', value:'Custom Radio Strap'}]});
+  });
+  const btn=$('addToCart');
+  btn.disabled=true;
+  JPCart.add([{merchandiseId:window.CRS.variant, quantity:1, attributes:attrs}]
+    .concat(extra)).then(()=>{ btn.disabled=false; });
+});
 
 // ---------------- share link ----------------
 const KEYS={l:'leather',z:'length',s:'stitch',d:'ds',a:'ls',b:'rs',p:'paint',o:'outline',

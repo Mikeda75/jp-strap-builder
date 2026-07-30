@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/site.css">
+<script>window.SHOPIFY_CFG={"store": "jp-leatherworks-dev", "apiVersion": "2026-07", "token": "a8c6e1e8ebba069c9a18929340238e01"}</script>
+<script src="../assets/cart.js" defer></script>
 </head>
 <body>
 
@@ -142,7 +144,7 @@
         
         <p class="pdp-desc">Leather Field Notes Book Cover with Field Notes Book Our handmade leather Field Notes book cover is a great addition to your everyday carry…</p>
         <div class="pdp-form">
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Leather Color">
       <div class="opt-name">01 — Leather Color <b>· Required</b></div>
       <div class="sw-grid" data-role="leather">
         <button type="button" class="sw-item on" data-g="o1" data-price="0" data-hex="#5e3a1e" title="Ridge York ( Rich Brown)"><span class="dot" style="background:#5e3a1e"></span><span class="lab">Ridge York ( Rich Brown)</span></button>
@@ -151,37 +153,37 @@
         <button type="button" class="sw-item" data-g="o1" data-price="0" data-hex="#7a5230" title="Crazy Horse (Brown with tan pull up)"><span class="dot" style="background:#7a5230"></span><span class="lab">Crazy Horse (Brown with tan pull up)</span></button>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Personalization">
       <div class="opt-name">02 — Personalization</div>
       <input class="text-in" type="text" placeholder="Leave blank for none">
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Personalization Location (If Selected)">
       <div class="opt-name">03 — Personalization Location (If Selected) <b>· Required</b></div>
       <select class="text-in opt-sel">
         <option value="">Choose Options</option>
-        <option data-price="0">None</option>
-        <option data-price="10.0">Front Cover, Bottom Right Corner +$10</option>
-        <option data-price="10.0">Rear Cover, Centered at Bottom +$10</option>
+        <option data-price="0" data-label="None">None</option>
+        <option data-price="10.0" data-label="Front Cover, Bottom Right Corner">Front Cover, Bottom Right Corner +$10</option>
+        <option data-price="10.0" data-label="Rear Cover, Centered at Bottom">Rear Cover, Centered at Bottom +$10</option>
       </select>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Custom Engraved Logo">
       <div class="opt-name">04 — Custom Engraved Logo</div>
       <div class="swatches">
         <div class="chip on" data-g="o4" data-price="0" title="No">No</div>
         <div class="chip" data-g="o4" data-price="35.0" title="Yes">Yes<b>+$35</b></div>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Logo Upload (Must Select &quot;Yes&quot; Above to receive an engraved item)">
       <div class="opt-name">05 — Logo Upload (Must Select &quot;Yes&quot; Above to receive an engraved item)</div>
       <div class="opt-help">Artwork upload — we&rsquo;ll arrange the file transfer by email after checkout.</div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Notes">
       <div class="opt-name">06 — Notes</div>
       <input class="text-in" type="text" placeholder="Leave blank for none">
     </div>
         </div>
         <div class="pdp-cta">
-          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$84.99</span></a>
+          <a class="btn btn-gold" id="addToCart" href="#" onclick="return false" data-variant="gid://shopify/ProductVariant/48398039482580">Add To Cart — <span id="ctaPrice">$84.99</span></a>
         </div>
         <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
       </div>
@@ -329,6 +331,48 @@
   document.addEventListener('click', () =>
     document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
+
+  // ---- Add To Cart -> Shopify cart (cart.js) ----
+  (function(){
+    const cta = document.getElementById('addToCart');
+    if (!cta || !cta.dataset.variant) return;
+    const ADDONS = {"Custom Engraved Logo: Yes": "gid://shopify/ProductVariant/48398172520660", "Personalization Location (If Selected): Front Cover, Bottom Right Corner": "gid://shopify/ProductVariant/48398172455124", "Personalization Location (If Selected): Rear Cover, Centered at Bottom": "gid://shopify/ProductVariant/48398172487892"};
+    const TITLE = "Leather Notebook Cover";
+    function clean(s){ return s.replace(/\s*\+\$[\d.]+\s*$/, '').trim(); }
+    cta.addEventListener('click', function(e){
+      e.preventDefault();
+      if (!window.JPCart || !window.SHOPIFY_CFG) return;
+      const attrs = [], extra = [], seen = {};
+      document.querySelectorAll('.pdp-form .opt-block').forEach(function(b){
+        let name = b.dataset.opt; if (!name) return;
+        let label = null;
+        const sel = b.querySelector('select.opt-sel');
+        const inp = b.querySelector('input.text-in');
+        const on = b.querySelector('.dd-opt.on, .sw-item.on, .chip.on');
+        if (sel) {
+          const o = sel.selectedOptions[0];
+          label = o && o.dataset.label ? o.dataset.label : null;
+        } else if (inp) {
+          const v = inp.value.trim();
+          label = v && v !== '0' ? v : null;
+        } else if (on) {
+          label = on.getAttribute('title') || clean(on.textContent);
+        }
+        if (!label) return;
+        if (seen[name]) name += ' (2)';
+        seen[name] = 1;
+        attrs.push({key: name, value: label});
+        const gid = ADDONS[b.dataset.opt + ': ' + label];
+        if (gid) extra.push({merchandiseId: gid, quantity: 1,
+                             attributes: [{key: 'For', value: TITLE}]});
+      });
+      cta.style.opacity = .6;
+      JPCart.add([{merchandiseId: cta.dataset.variant, quantity: 1,
+                   attributes: attrs}].concat(extra))
+        .then(function(){ cta.style.opacity = ''; });
+    });
+  })();
+
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
   (function(){

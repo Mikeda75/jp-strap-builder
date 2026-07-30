@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/site.css">
+<script>window.SHOPIFY_CFG={"store": "jp-leatherworks-dev", "apiVersion": "2026-07", "token": "a8c6e1e8ebba069c9a18929340238e01"}</script>
+<script src="../assets/cart.js" defer></script>
 </head>
 <body>
 
@@ -138,7 +140,7 @@
         
         <p class="pdp-desc">Introducing our RTS Radio Strap, meticulously crafted to provide top-notch quality at an unbeatable price point. Featuring a width of 1.5 inches,…</p>
         <div class="pdp-form">
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Strap Length">
       <div class="opt-name">01 — Strap Length <b>· Required</b></div>
       <div class="swatches">
         <div class="chip on" data-g="o1" data-price="0" title="Medium 54&quot;-62&quot;">Medium 54&quot;-62&quot;</div>
@@ -146,7 +148,7 @@
         <div class="chip" data-g="o1" data-price="0" title="X-Large 62&quot;-70&quot;">X-Large 62&quot;-70&quot;</div>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Stitching">
       <div class="opt-name">02 — Stitching <b>· Required</b></div>
       <div class="swatches">
         <div class="chip on" data-g="o2" data-price="0" title="None">None</div>
@@ -154,7 +156,7 @@
         <div class="chip" data-g="o2" data-price="0" title="Black">Black</div>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Hardware">
       <div class="opt-name">03 — Hardware <b>· Required</b></div>
       <div class="sw-grid" data-role="hw">
         <button type="button" class="sw-item on" data-g="o3" data-price="0" data-hex="#20191a" title="Black"><span class="dot" style="background:#20191a"></span><span class="lab">Black</span></button>
@@ -162,29 +164,29 @@
         <button type="button" class="sw-item" data-g="o3" data-price="10.0" data-hex="#a8853c" title="Sold Brass"><span class="dot" style="background:#a8853c"></span><span class="lab">Sold Brass</span><b>+$10</b></button>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Radio Holster and Anti-Sway Strap">
       <div class="opt-name">04 — Radio Holster and Anti-Sway Strap <b>· Required</b></div>
       <select class="text-in opt-sel">
         <option value="">Choose Options</option>
-        <option data-price="0">No</option>
-        <option data-price="60.0">Yes- Standard Holster +$60</option>
-        <option data-price="60.0">Yes- Extended Battery Holster +$60</option>
-        <option data-price="60.0">Yes- Wide Holster +$60</option>
-        <option data-price="0">Yes- Wide Extended Battery Holster (+60)</option>
-        <option data-price="80.0">Yes- &quot;Trauma&quot; Holster +$80</option>
-        <option data-price="80.0">Yes- Extended Battery &quot;Trauma&quot; Holster +$80</option>
-        <option data-price="80.0">Yes- Wide &quot;Trauma&quot; Holster +$80</option>
-        <option data-price="80.0">Yes- Wide Extended Battery &quot;Trauma&quot; Holster +$80</option>
+        <option data-price="0" data-label="No">No</option>
+        <option data-price="60.0" data-label="Yes- Standard Holster">Yes- Standard Holster +$60</option>
+        <option data-price="60.0" data-label="Yes- Extended Battery Holster">Yes- Extended Battery Holster +$60</option>
+        <option data-price="60.0" data-label="Yes- Wide Holster">Yes- Wide Holster +$60</option>
+        <option data-price="0" data-label="Yes- Wide Extended Battery Holster (+60)">Yes- Wide Extended Battery Holster (+60)</option>
+        <option data-price="80.0" data-label="Yes- &quot;Trauma&quot; Holster">Yes- &quot;Trauma&quot; Holster +$80</option>
+        <option data-price="80.0" data-label="Yes- Extended Battery &quot;Trauma&quot; Holster">Yes- Extended Battery &quot;Trauma&quot; Holster +$80</option>
+        <option data-price="80.0" data-label="Yes- Wide &quot;Trauma&quot; Holster">Yes- Wide &quot;Trauma&quot; Holster +$80</option>
+        <option data-price="80.0" data-label="Yes- Wide Extended Battery &quot;Trauma&quot; Holster">Yes- Wide Extended Battery &quot;Trauma&quot; Holster +$80</option>
       </select>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Add Pen Loop">
       <div class="opt-name">05 — Add Pen Loop <b>· Required</b></div>
       <div class="swatches">
         <div class="chip on" data-g="o5" data-price="0" title="No">No</div>
         <div class="chip" data-g="o5" data-price="10.0" title="Yes">Yes<b>+$10</b></div>
       </div>
     </div>
-    <div class="opt-block">
+    <div class="opt-block" data-opt="Add Two Cord Keepers">
       <div class="opt-name">06 — Add Two Cord Keepers</div>
       <div class="swatches">
         <div class="chip on" data-g="o6" data-price="0" title="No">No</div>
@@ -193,7 +195,7 @@
     </div>
         </div>
         <div class="pdp-cta">
-          <a class="btn btn-gold" href="#" onclick="return false">Add To Cart — <span id="ctaPrice">$74.99</span></a>
+          <a class="btn btn-gold" id="addToCart" href="#" onclick="return false" data-variant="gid://shopify/ProductVariant/48398044496084">Add To Cart — <span id="ctaPrice">$74.99</span></a>
         </div>
         <div class="pdp-note">Free standard shipping · Lifetime guarantee · Handmade to order in Whiting, NJ</div>
       </div>
@@ -331,6 +333,48 @@
   document.addEventListener('click', () =>
     document.querySelectorAll('.pdp-form .dd.open').forEach(x => x.classList.remove('open')));
   total();
+
+  // ---- Add To Cart -> Shopify cart (cart.js) ----
+  (function(){
+    const cta = document.getElementById('addToCart');
+    if (!cta || !cta.dataset.variant) return;
+    const ADDONS = {"Add Pen Loop: Yes": "gid://shopify/ProductVariant/48398185922772", "Add Two Cord Keepers: Yes": "gid://shopify/ProductVariant/48398185955540", "Hardware: Sold Brass": "gid://shopify/ProductVariant/48398185660628", "Radio Holster and Anti-Sway Strap: Yes- \"Trauma\" Holster": "gid://shopify/ProductVariant/48398185791700", "Radio Holster and Anti-Sway Strap: Yes- Extended Battery \"Trauma\" Holster": "gid://shopify/ProductVariant/48398185824468", "Radio Holster and Anti-Sway Strap: Yes- Extended Battery Holster": "gid://shopify/ProductVariant/48398185726164", "Radio Holster and Anti-Sway Strap: Yes- Standard Holster": "gid://shopify/ProductVariant/48398185693396", "Radio Holster and Anti-Sway Strap: Yes- Wide \"Trauma\" Holster": "gid://shopify/ProductVariant/48398185857236", "Radio Holster and Anti-Sway Strap: Yes- Wide Extended Battery \"Trauma\" Holster": "gid://shopify/ProductVariant/48398185890004", "Radio Holster and Anti-Sway Strap: Yes- Wide Holster": "gid://shopify/ProductVariant/48398185758932"};
+    const TITLE = "RTS Radio Strap";
+    function clean(s){ return s.replace(/\s*\+\$[\d.]+\s*$/, '').trim(); }
+    cta.addEventListener('click', function(e){
+      e.preventDefault();
+      if (!window.JPCart || !window.SHOPIFY_CFG) return;
+      const attrs = [], extra = [], seen = {};
+      document.querySelectorAll('.pdp-form .opt-block').forEach(function(b){
+        let name = b.dataset.opt; if (!name) return;
+        let label = null;
+        const sel = b.querySelector('select.opt-sel');
+        const inp = b.querySelector('input.text-in');
+        const on = b.querySelector('.dd-opt.on, .sw-item.on, .chip.on');
+        if (sel) {
+          const o = sel.selectedOptions[0];
+          label = o && o.dataset.label ? o.dataset.label : null;
+        } else if (inp) {
+          const v = inp.value.trim();
+          label = v && v !== '0' ? v : null;
+        } else if (on) {
+          label = on.getAttribute('title') || clean(on.textContent);
+        }
+        if (!label) return;
+        if (seen[name]) name += ' (2)';
+        seen[name] = 1;
+        attrs.push({key: name, value: label});
+        const gid = ADDONS[b.dataset.opt + ': ' + label];
+        if (gid) extra.push({merchandiseId: gid, quantity: 1,
+                             attributes: [{key: 'For', value: TITLE}]});
+      });
+      cta.style.opacity = .6;
+      JPCart.add([{merchandiseId: cta.dataset.variant, quantity: 1,
+                   attributes: attrs}].concat(extra))
+        .then(function(){ cta.style.opacity = ''; });
+    });
+  })();
+
 
   // ---- stage gallery: arrows, two-row thumbs, breakdown under the total ----
   (function(){
