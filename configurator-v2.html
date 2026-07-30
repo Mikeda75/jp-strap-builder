@@ -1325,11 +1325,14 @@ function render(){
   $('holsterDims').textContent = DIMS[state.holster];
 
   // stamps — background-removed cutouts sit straight on the leather, rotated
-  // to read along the strap like the real stamped straps
+  // to read along the strap like the real stamped straps. The live view is
+  // locked to the American Flag cutout for now (the only one preview-ready);
+  // the dropdown thumbnails still show every stamp's own cutout.
+  const LOCKED='assets/stamps-cut/american-flag.png';
   [['stampL',state.ls],['stampR',state.rs]].forEach(pair=>{
     const it=STAMPS[pair[1]];
     $(pair[0]).innerHTML = it.cut
-      ? '<image href="'+it.cut+'" x="-102" y="-100" width="204" height="200" preserveAspectRatio="xMidYMid meet" transform="rotate(-90)"/>'
+      ? '<image href="'+LOCKED+'" x="-102" y="-100" width="204" height="200" preserveAspectRatio="xMidYMid meet" transform="rotate(-90)"/>'
       : (it.c?'<use href="#'+it.c+'"/>':'');
   });
 
