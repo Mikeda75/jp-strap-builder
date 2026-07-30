@@ -130,8 +130,7 @@
     document.getElementById("jpcSub").textContent =
       cart ? money(cart.cost.subtotalAmount.amount) : "$0";
     if (!lines.length) {
-      body.innerHTML = '<div class="jpc-empty">Your cart is empty.<br>' +
-        "Every piece is handmade to order in Whiting, NJ.</div>";
+      body.innerHTML = '<div class="jpc-empty">Your cart is empty.</div>';
       go.setAttribute("aria-disabled", "true");
       go.href = "#";
       return;
