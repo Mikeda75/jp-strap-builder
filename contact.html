@@ -110,10 +110,34 @@
       <a class="sec-link" href="https://www.google.com/maps/dir/?api=1&destination=108+Lacey+Rd+STE+12,+Whiting,+NJ+08759" target="_blank" rel="noopener">Get Directions</a>
     </div>
     <div style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--char-card)">
-      <iframe src="https://www.google.com/maps?q=108+Lacey+Rd+STE+12,+Whiting,+NJ+08759&output=embed" width="100%" height="430" style="border:0;display:block;filter:invert(.9) hue-rotate(180deg) saturate(.55) contrast(.92)" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" title="Map to JP Custom Leatherworks, 108 Lacey Rd STE 12, Whiting NJ 08759"></iframe>
+      <div id="shop-map" style="height:430px" title="Map to JP Custom Leatherworks, 108 Lacey Rd STE 12, Whiting NJ 08759"></div>
     </div>
   </div>
 </section>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  #shop-map .leaflet-popup-content-wrapper,#shop-map .leaflet-popup-tip{background:#1f1f1f;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  #shop-map .leaflet-popup-content{font-family:'Jost',sans-serif;font-size:13.5px;line-height:1.5}
+  #shop-map .leaflet-popup-content b{color:#f7b829}
+  #shop-map .leaflet-control-attribution{background:rgba(31,31,31,.75);color:rgba(255,255,255,.55)}
+  #shop-map .leaflet-control-attribution a{color:rgba(255,255,255,.7)}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var here=[39.9522,-74.3808];
+  var map=L.map('shop-map',{center:here,zoom:14,scrollWheelZoom:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(map);
+  var pin=L.divIcon({className:'',iconSize:[38,50],iconAnchor:[19,50],popupAnchor:[0,-46],
+    html:'<svg width="38" height="50" viewBox="0 0 38 50" xmlns="http://www.w3.org/2000/svg"><path d="M19 0C8.5 0 0 8.5 0 19c0 13 19 31 19 31s19-18 19-31C38 8.5 29.5 0 19 0z" fill="#f7b829" stroke="#1f1f1f" stroke-width="1.5"/><circle cx="19" cy="19" r="7" fill="#1f1f1f"/></svg>'});
+  L.marker(here,{icon:pin,title:'JP Custom Leatherworks'}).addTo(map)
+    .bindPopup('<b>JP Custom Leatherworks</b><br>108 Lacey Rd, STE 12<br>Whiting, NJ 08759');
+});
+</script>
 
 <!-- FOOTER -->
 <footer class="foot">
