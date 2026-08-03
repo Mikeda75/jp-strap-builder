@@ -60,7 +60,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(31,31,31,.94);backdrop-f
 .hero p{margin:26px 0 38px;max-width:52ch;color:var(--muted);font-size:18px}
 .hero-cta{display:flex;gap:16px;flex-wrap:wrap}
 .hero .eyebrow{display:block;margin-bottom:20px}
-.hero-card{position:relative;z-index:1;margin:0;justify-self:end;width:min(100%,480px);transform:rotate(2deg);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:#151515;box-shadow:0 34px 70px rgba(0,0,0,.55)}
+.hero-card{position:relative;z-index:1;margin:0;justify-self:end;width:min(100%,480px);transform:rotate(2deg);border-radius:14px;overflow:hidden;border:1px solid rgba(247,184,41,.5);background:#151515;box-shadow:16px 18px 0 -2px var(--gold),0 34px 70px rgba(0,0,0,.6)}
 .hero-card img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
 
 /* ── page hero (interior pages) ───────── */
